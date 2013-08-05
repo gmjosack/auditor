@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block title %} Auditor {% endblock %}</title>
+    <link href="{{STATIC_URL}}css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="{{STATIC_URL}}css/font-awesome.min.css" rel="stylesheet" media="screen">
+    <link href="{{STATIC_URL}}css/auditor.css" rel="stylesheet" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Cabin:400,500' rel="stylesheet">
+    {% block extra_head %} {% endblock %}
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <span class="logo"><a href="/">Auditor.</a></span>
+        <div class="navbar navbar-static-top navbar-inverse">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+            <ul class="nav pull-right">
+              <li>
+                <form class="navbar-search pull-left">
+                  <input type="text" class="search-query" placeholder="Search">
+                </form>
+              </li>
+              <li>
+                <a href="/help"><i alt="Help" class="icon-question"></i></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        {% block content %} {% endblock %}
+      </div>
+    </div>
+
+    <script src="/static/js/jquery-2.0.3.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/auditor.js"></script>
+    {% block script %} {% endblock %}
+  </body>
+</html>
