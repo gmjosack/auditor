@@ -96,8 +96,8 @@ td.event-expander {
     text-align: center;
 }
 
-th.event-start    { width: 140px; }
-th.event-end      { width: 140px; }
+th.event-start    { width: 150px; }
+th.event-end      { width: 150px; }
 th.event-expander { width: 40px;  }
 th.event-progress { width: 200px; }
 

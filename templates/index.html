@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load auditor %}
+
 {% block content %}
   <table class="table table-condensed table-hover">
     <tbody>
@@ -23,15 +25,30 @@
           </td>
           <td class="event-summary">{{event.summary}}</td>
           <td class="event-progress">
-            <div class="progress progress-striped active">
-              <div class="bar bar-success" style="width: 75%;"></div>
-              <div class="bar bar-danger" style="width: 10%;"></div>
+            <div data-toggle="tooltip"
+                 title="Tasks: {{event.task_nums.Total}}
+Success: {{event.task_nums.Success|default:0}}
+Failed: {{event.task_nums.Failed|default:0}}">
+              {% if event.task_nums.Total %}
+                <div class="progress progress-striped active">
+                  <div class="bar bar-success" style="width: {{event.task_nums.Success|perc_of:event.task_nums.Total}}%;"></div>
+                  <div class="bar bar-danger" style="width: {{event.task_nums.Failed|perc_of:event.task_nums.Total}}%;"></div>
+                </div>
+              {% else %}
+                <div class="progress">
+                  {% if event.end %}
+                    <div class="bar bar-success" style="width: 100%;"></div>
+                  {% else %}
+                    <div class="bar" style="width: 0%;"></div>
+                  {% endif %}
+                </div>
+              {% endif %}
             </div>
           </td>
           <td class="event-user">{{event.user}}</td>
-          <td class="event-tags">{{event.tags|join:", "}}</td>
+          <td class="event-tags">{{event.tags}}</td>
           <td class="event-start">{{event.start}}</td>
-          <td class="event-end">{{event.end}}</td>
+          <td class="event-end">{{event.end|default_if_none:""}}</td>
         </tr>
 
         <tr>
@@ -49,6 +66,12 @@
 
 {% block script %}
   <script type="text/javascript">
+    var socket = io.connect("http://localhost:8001");
+
+    socket.on('event', function(data){
+        console.log(data);
+    });
+
     $(".collapse-event").on('show', function(event){
         var obj = $(this).find('.tasks');
         if (obj.hasClass("loading") || obj.hasClass("filled")) return;

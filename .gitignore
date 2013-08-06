@@ -37,5 +37,5 @@ nosetests.xml
 *.swp
 
 # Auditor specific
-devdb.sql
+devdb.sqlite
 auditor_settings.py
