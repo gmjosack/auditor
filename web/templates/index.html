@@ -16,7 +16,7 @@
 
       {% for event in events %}
 
-        <tr class="event-row">
+        <tr id="event-row-{{event.id}}" class="event-row">
           <td class="event-expander">
             <a data-toggle="collapse" data-target="#collapse-event-{{event.id}}" class="btn">
               <i class="icon-level-down"></i>
@@ -29,7 +29,7 @@
           <td class="event-end">{{event.end|default_if_none:""}}</td>
         </tr>
 
-        <tr class="event-row-details">
+        <tr id="event-row-details-{{event.id}}" class="event-row-details">
           <td class="event-extend" colspan="7">
             <div id="collapse-event-{{event.id}}" class="collapse collapse-event">
               <div id="event-{{event.id}}" class="tasks"></div>
@@ -46,26 +46,43 @@
   <script type="text/javascript">
     var socket = io.connect("http://localhost:8001");
 
-    socket.on('event.new', function(data){
-        var data = $.parseJSON(data);
-        var new_row = $(".event-row:first").clone();
-        var new_row_details = $(".event-row-details:first").clone();
 
-        console.log(data)
-
-        new_row.find('td').each(function(idx, elem){
+    function updateRow(row, data){
+        row.find('td').each(function(idx, elem){
             var td = $(elem);
-            console.log(td.get())
             if (td.hasClass("event-expander")){
                 td.find("a").attr("data-target", "#collapse-event-" + data.id);
             }
             if (td.hasClass("event-summary")) td.html(data.summary || "");
             if (td.hasClass("event-user")) td.html(data.user || "");
             if (td.hasClass("event-tags")) td.html(data.tags || "");
-            if (td.hasClass("event-start")) td.html(data.start || "");
-            if (td.hasClass("event-end")) td.html(data.end || "");
-            console.log(td.get())
+            if (td.hasClass("event-start")){
+                if (data.start) {
+                    td.html(moment(data.start).format());
+                } else {
+                    td.html("");
+                }
+            }
+            if (td.hasClass("event-end")){
+                if (data.end) {
+                    td.html(moment(data.end).format());
+                } else {
+                    td.html("");
+                }
+            }
         });
+    }
+
+
+    socket.on('event.new', function(data){
+        var data = $.parseJSON(data);
+        var new_row = $(".event-row:first").clone();
+        var new_row_details = $(".event-row-details:first").clone();
+
+        new_row.attr('id', 'event-row-' + data.id);
+        new_row_details.attr('id', 'event-row-details-' + data.id);
+
+        updateRow(new_row, data);
 
         new_row_details.find(".collapse-event")
             .attr("id", "collapse-event-" + data.id)
@@ -79,7 +96,9 @@
 
 
     socket.on('event.update', function(data){
-        console.log(data);
+        var data = $.parseJSON(data);
+        var row = $("#event-row-" + data.id);
+        updateRow(row, data);
     });
 
     $("#event-table").on('show', '.collapse-event', function(event){

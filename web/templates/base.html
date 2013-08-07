@@ -39,8 +39,20 @@
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/auditor.js"></script>
     <script src="/static/js/socket.io.min.js"></script>
+    <script src="/static/js/moment.min.js"></script>
     <script type="text/javascript">
       var WEB_SOCKET_SWF_LOCATION = "/static/swf/";
+
+      moment.defaultFormat = "MMM D, YYYY, h:mm a";
+      moment.lang('en', {
+        meridiem: function(hours, minutes, isLower){
+            if (hours > 11) {
+                return isLower ? 'p.m.' : 'P.M.';
+            } else {
+                return isLower ? 'a.m.' : 'A.M.';
+            }
+        }
+      });
     </script>
 
     {% block script %} {% endblock %}
