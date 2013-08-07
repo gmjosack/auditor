@@ -9,8 +9,6 @@ urlpatterns = patterns('',
 
     url(r'^event/$', 'base.views.event'),
     url(r'^event/(?P<event_id>\d+)/$', 'base.views.event'),
-    url(r'^event/(?P<event_id>\d+)/task/$', 'base.views.task'),
-    url(r'^event/(?P<event_id>\d+)/task/(?P<task_id>\d+)$', 'base.views.task'),
 
 #    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 #    url(r'^admin/', include(admin.site.urls)),

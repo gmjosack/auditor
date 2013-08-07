@@ -32,7 +32,7 @@
         <tr id="event-row-details-{{event.id}}" class="event-row-details">
           <td class="event-extend" colspan="7">
             <div id="collapse-event-{{event.id}}" class="collapse collapse-event">
-              <div id="event-{{event.id}}" class="tasks"></div>
+              <div id="event-{{event.id}}" class="event-details"></div>
             </div>
           </td>
         </tr>
@@ -80,6 +80,7 @@
         var new_row_details = $(".event-row-details:first").clone();
 
         new_row.attr('id', 'event-row-' + data.id);
+        new_row.css('display', 'none');
         new_row_details.attr('id', 'event-row-details-' + data.id);
 
         updateRow(new_row, data);
@@ -88,23 +89,29 @@
             .attr("id", "collapse-event-" + data.id)
             .removeClass("in")
             .css("height", "");
-        new_row_details.find(".tasks").attr("id", "event-" + data.id);
+        new_row_details.find(".event-details").attr("id", "event-" + data.id);
 
         $(".event-row:first").before(new_row);
         new_row.after(new_row_details);
+        new_row.fadeIn(900);
     });
 
 
     socket.on('event.update', function(data){
         var data = $.parseJSON(data);
         var row = $("#event-row-" + data.id);
-        updateRow(row, data);
+        row.fadeOut(100, function(){
+            updateRow(row, data);
+        });
+        row.fadeIn();
+
     });
 
     $("#event-table").on('show', '.collapse-event', function(event){
-        var obj = $(this).find('.tasks');
+        var obj = $(this).find('.event-details');
         if (obj.hasClass("loading") || obj.hasClass("filled")) return;
         obj.addClass("loading");
+
         obj.append('<i class="icon-spinner icon-spin icon-2x"></i>');
     });
   </script>
