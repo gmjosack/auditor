@@ -18,7 +18,6 @@ connection.on('ready', function(){
 
     io.sockets.on('connection', function(socket) {
 
-
         console.log("Client connected.");
         connection.queue("", {"autoDelete": true}, function(queue){
 
@@ -26,6 +25,11 @@ connection.on('ready', function(){
             queue.subscribe(function(message, headers, deliveryInfo){
                 console.log(deliveryInfo.routingKey);
                 socket.emit(deliveryInfo.routingKey, message.data.toString());
+            });
+
+            socket.on('disconnect', function(){
+                console.log("Client disconnected.");
+                queue.destroy();
             });
         });
     });
