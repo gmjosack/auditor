@@ -1,8 +1,18 @@
 #!/usr/bin/env python
 
+import json
 import requests
+import pika
 from pytz import UTC
 from datetime import datetime
+
+import logging
+logging.basicConfig()
+
+
+connection = pika.BlockingConnection()
+channel = connection.channel()
+
 
 r = requests.post("http://localhost:8000/event/", data={
     "summary": "dsh -Mcg nginx sudo kick",
@@ -11,4 +21,14 @@ r = requests.post("http://localhost:8000/event/", data={
 #    "start": UTC.localize(datetime.utcnow()),
 })
 
-print r.text
+x = json.loads(r.text)
+
+if x["type"] == "response":
+    channel.basic_publish(exchange='amq.topic',
+                          routing_key='event.new',
+                          body=json.dumps(x["data"])
+    )
+
+channel.close()
+connection.close()
+

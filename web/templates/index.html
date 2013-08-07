@@ -3,12 +3,11 @@
 {% load auditor %}
 
 {% block content %}
-  <table class="table table-condensed table-hover">
+  <table id="event-table" class="table table-condensed table-hover">
     <tbody>
       <tr>
         <th class="event-expander">&nbsp;</th>
         <th class="event-summary">Summary</th>
-        <th class="event-progress">Progress</th>
         <th class="event-user">User</th>
         <th class="event-tags">Tags</th>
         <th class="event-start">Start</th>
@@ -17,42 +16,21 @@
 
       {% for event in events %}
 
-        <tr>
+        <tr class="event-row">
           <td class="event-expander">
             <a data-toggle="collapse" data-target="#collapse-event-{{event.id}}" class="btn">
               <i class="icon-level-down"></i>
             </a>
           </td>
           <td class="event-summary">{{event.summary}}</td>
-          <td class="event-progress">
-            <div data-toggle="tooltip"
-                 title="Tasks: {{event.task_nums.Total}}
-Success: {{event.task_nums.Success|default:0}}
-Failed: {{event.task_nums.Failed|default:0}}">
-              {% if event.task_nums.Total %}
-                <div class="progress progress-striped active">
-                  <div class="bar bar-success" style="width: {{event.task_nums.Success|perc_of:event.task_nums.Total}}%;"></div>
-                  <div class="bar bar-danger" style="width: {{event.task_nums.Failed|perc_of:event.task_nums.Total}}%;"></div>
-                </div>
-              {% else %}
-                <div class="progress">
-                  {% if event.end %}
-                    <div class="bar bar-success" style="width: 100%;"></div>
-                  {% else %}
-                    <div class="bar" style="width: 0%;"></div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </div>
-          </td>
           <td class="event-user">{{event.user}}</td>
           <td class="event-tags">{{event.tags}}</td>
           <td class="event-start">{{event.start}}</td>
           <td class="event-end">{{event.end|default_if_none:""}}</td>
         </tr>
 
-        <tr>
-          <td class="event-extend" colspan="8">
+        <tr class="event-row-details">
+          <td class="event-extend" colspan="7">
             <div id="collapse-event-{{event.id}}" class="collapse collapse-event">
               <div id="event-{{event.id}}" class="tasks"></div>
             </div>
@@ -68,11 +46,43 @@ Failed: {{event.task_nums.Failed|default:0}}">
   <script type="text/javascript">
     var socket = io.connect("http://localhost:8001");
 
-    socket.on('event', function(data){
+    socket.on('event.new', function(data){
+        var data = $.parseJSON(data);
+        var new_row = $(".event-row:first").clone();
+        var new_row_details = $(".event-row-details:first").clone();
+
+        console.log(data)
+
+        new_row.find('td').each(function(idx, elem){
+            var td = $(elem);
+            console.log(td.get())
+            if (td.hasClass("event-expander")){
+                td.find("a").attr("data-target", "#collapse-event-" + data.id);
+            }
+            if (td.hasClass("event-summary")) td.html(data.summary || "");
+            if (td.hasClass("event-user")) td.html(data.user || "");
+            if (td.hasClass("event-tags")) td.html(data.tags || "");
+            if (td.hasClass("event-start")) td.html(data.start || "");
+            if (td.hasClass("event-end")) td.html(data.end || "");
+            console.log(td.get())
+        });
+
+        new_row_details.find(".collapse-event")
+            .attr("id", "collapse-event-" + data.id)
+            .removeClass("in")
+            .css("height", "");
+        new_row_details.find(".tasks").attr("id", "event-" + data.id);
+
+        $(".event-row:first").before(new_row);
+        new_row.after(new_row_details);
+    });
+
+
+    socket.on('event.update', function(data){
         console.log(data);
     });
 
-    $(".collapse-event").on('show', function(event){
+    $("#event-table").on('show', '.collapse-event', function(event){
         var obj = $(this).find('.tasks');
         if (obj.hasClass("loading") || obj.hasClass("filled")) return;
         obj.addClass("loading");

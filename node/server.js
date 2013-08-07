@@ -10,7 +10,7 @@ connection.on('ready', function(){
 
     connection.queue("", {"autoDelete": true}, function(queue){
 
-        queue.bind("amq.headers", "");
+        queue.bind("amq.topic", "");
         queue.subscribe(function(message, headers, deliveryInfo){
             console.log(message.data.toString());
         });
@@ -19,13 +19,13 @@ connection.on('ready', function(){
     io.sockets.on('connection', function(socket) {
 
 
-        console.log("Connected");
-        console.log(socket);
+        console.log("Client connected.");
         connection.queue("", {"autoDelete": true}, function(queue){
 
-            queue.bind("amq.headers", "");
+            queue.bind("amq.topic", "event.*");
             queue.subscribe(function(message, headers, deliveryInfo){
-                socket.emit("event", message.data.toString());
+                console.log(deliveryInfo.routingKey);
+                socket.emit(deliveryInfo.routingKey, message.data.toString());
             });
         });
     });
