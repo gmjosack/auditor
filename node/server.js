@@ -10,8 +10,12 @@ connection.on('ready', function(){
 
     connection.queue("", {"autoDelete": true}, function(queue){
 
-        queue.bind("amq.topic", "");
+        queue.bind_headers("amq.headers", {
+            "x-match": "all",
+            "ns": "auditor"
+        });
         queue.subscribe(function(message, headers, deliveryInfo){
+            console.log("Headers: ", headers);
             console.log(message.data.toString());
         });
     });
@@ -21,10 +25,14 @@ connection.on('ready', function(){
         console.log("Client connected.");
         connection.queue("", {"autoDelete": true}, function(queue){
 
-            queue.bind("amq.topic", "event.*");
+            queue.bind_headers("amq.headers", {
+                "x-match": "all",
+                "ns": "auditor",
+                "type": "event"
+            });
+
             queue.subscribe(function(message, headers, deliveryInfo){
-                console.log(deliveryInfo.routingKey);
-                socket.emit(deliveryInfo.routingKey, message.data.toString());
+                socket.emit(headers.ns + "." + headers.type + "." + headers.cmd, message.data.toString());
             });
 
             socket.on('disconnect', function(){

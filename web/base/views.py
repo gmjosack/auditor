@@ -18,13 +18,24 @@ def index(request):
     return r2r(request, "index", ctxt)
 
 
-def publish(key, data):
+def publish(type, cmd, data, tags=None):
     connection = pika.BlockingConnection()
     channel = connection.channel()
 
-    channel.basic_publish(exchange='amq.topic',
-                          routing_key=key,
-                          body=json.dumps(data, cls=DjangoJSONEncoder)
+    fields = {
+        "ns": "auditor",
+        "type": type,
+        "cmd": cmd,
+    }
+
+    if tags:
+        for tag in tags:
+            fields["tag_%s" % tag] = "1"
+
+    channel.basic_publish(exchange='amq.headers',
+                          routing_key="",
+                          body=json.dumps(data, cls=DjangoJSONEncoder),
+                          properties=pika.BasicProperties(headers = fields)
     )
     connection.close()
 
@@ -36,7 +47,7 @@ def event(request, event_id=None):
             event = Event(**normalize_post(request.POST))
             event.save()
             data = event.to_dict()
-            publish("event.new", data)
+            publish("event", "new", data, tags=event.tag_list)
             return json_response(data)
         except IntegrityError as err:
             return json_response({"msg": str(err)}, "error", 400)
@@ -51,7 +62,7 @@ def event(request, event_id=None):
             event.update(request.read())
             event.save()
             data = event.to_dict()
-            publish("event.update", data)
+            publish("event", "update", data, tags=event.tag_list)
             return json_response(data)
         except Event.DoesNotExist as err:
             return json_response({"msg": str(err)}, "error", 404)

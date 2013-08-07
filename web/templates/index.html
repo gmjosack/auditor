@@ -74,7 +74,7 @@
     }
 
 
-    socket.on('event.new', function(data){
+    socket.on('auditor.event.new', function(data){
         var data = $.parseJSON(data);
         var new_row = $(".event-row:first").clone();
         var new_row_details = $(".event-row-details:first").clone();
@@ -97,7 +97,7 @@
     });
 
 
-    socket.on('event.update', function(data){
+    socket.on('auditor.event.update', function(data){
         var data = $.parseJSON(data);
         var row = $("#event-row-" + data.id);
         row.fadeOut(100, function(){
