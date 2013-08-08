@@ -9,6 +9,7 @@ urlpatterns = patterns('',
 
     url(r'^event/$', 'base.views.event'),
     url(r'^event/(?P<event_id>\d+)/$', 'base.views.event'),
+    url(r'^event/(?P<event_id>\d+)/details/$', 'base.views.event_details'),
 
 #    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 #    url(r'^admin/', include(admin.site.urls)),

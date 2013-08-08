@@ -10,6 +10,7 @@
         <th class="event-summary">Summary</th>
         <th class="event-user">User</th>
         <th class="event-tags">Tags</th>
+        <th class="event-level">Level</th>
         <th class="event-start">Start</th>
         <th class="event-end">End</th>
       </tr>
@@ -22,9 +23,10 @@
               <i class="icon-level-down"></i>
             </a>
           </td>
-          <td class="event-summary">{{event.summary}}</td>
+          <td class="event-summary"><span title="{{event.summary}}">{{event.summary|truncatechars:90}}</span></td>
           <td class="event-user">{{event.user}}</td>
           <td class="event-tags">{{event.tags}}</td>
+          <td class="event-level">{{event.level}}</td>
           <td class="event-start">{{event.start}}</td>
           <td class="event-end">{{event.end|default_if_none:""}}</td>
         </tr>
@@ -32,7 +34,7 @@
         <tr id="event-row-details-{{event.id}}" class="event-row-details">
           <td class="event-extend" colspan="7">
             <div id="collapse-event-{{event.id}}" class="collapse collapse-event">
-              <div id="event-{{event.id}}" class="event-details"></div>
+              <div id="event-details-{{event.id}}" class="event-details"></div>
             </div>
           </td>
         </tr>
@@ -46,6 +48,7 @@
   <script type="text/javascript">
     var socket = io.connect("http://localhost:8001");
 
+    socket.emit("subscribe", {"type": "event"})
 
     function updateRow(row, data){
         row.find('td').each(function(idx, elem){
@@ -56,6 +59,7 @@
             if (td.hasClass("event-summary")) td.html(data.summary || "");
             if (td.hasClass("event-user")) td.html(data.user || "");
             if (td.hasClass("event-tags")) td.html(data.tags || "");
+            if (td.hasClass("event-level")) td.html(data.level || "");
             if (td.hasClass("event-start")){
                 if (data.start) {
                     td.html(moment(data.start).format());
@@ -111,12 +115,49 @@
 
     });
 
+
     $("#event-table").on('show', '.collapse-event', function(event){
         var obj = $(this).find('.event-details');
+        var event_id = obj.attr("id").split("-")[2];
         if (obj.hasClass("loading") || obj.hasClass("filled")) return;
         obj.addClass("loading");
-
         obj.append('<i class="icon-spinner icon-spin icon-2x"></i>');
+
+        $.get("/event/" + event_id + "/details/", function(data){
+            socket.emit("subscribe", {"type": "event_details", "event_id": event_id})
+            obj.find(".icon-spinner").remove();
+            obj.removeClass("loading");
+            obj.addClass("filled");
+
+            var msg = "";
+
+            msg += "<h4>Attributes:</h4>"
+            if ($.isEmptyObject(data.data.sd)){
+                msg += '<blockquote class="event-details-sd no-attributes">'
+                msg += 'No Attributes...'
+                msg += '</blockquote>'
+            } else {
+                msg += '<blockquote class="event-details-sd">'
+                $.each(data.data.sd, function(key, value){
+                    console.log(key, value);
+                    if ($.isArray(value)) value = value.join(", ");
+                    msg += "<b>" + key + ":</b> " + value + "<br>";
+                });
+                msg += '</blockquote>'
+            }
+
+            msg += "<h4>Details:</h4>";
+            if (!data.data.details){
+                msg += '<blockquote class="event-details-text no-details">'
+                msg += 'No Details...'
+                msg += '</blockquote>'
+            } else {
+                msg += '<blockquote class="event-details-text">'
+                msg += data.data.details
+                msg += '</blockquote>'
+            }
+            obj.append(msg);
+        });
     });
   </script>
 {% endblock %}

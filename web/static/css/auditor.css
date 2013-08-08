@@ -68,9 +68,6 @@ td.event-extend {
 }
 
 td.event-extend>div>div {
-    padding: 4px;
-    margin: 4px;
-    text-align: center;
 }
 
 .table tbody tr td
@@ -103,4 +100,18 @@ th.event-progress { width: 200px; }
 
 td{
     border-bottom: 8px;
+}
+
+.event-details {
+    padding: 4px;
+    margin: 4px;
+    text-align: left;
+    padding-left: 10px;
+}
+.event-details .loading {
+    text-align: center;
+}
+
+.event-details-sd, .event-details-text {
+    margin-left: 10px;
 }
