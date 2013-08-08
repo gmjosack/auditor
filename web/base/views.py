@@ -4,7 +4,7 @@ from django.db import IntegrityError, DatabaseError
 
 import pika
 import json
-from models import Event
+from models import Event, StructuredData
 from shortcuts import r2r, json_response, normalize_post, publish
 
 import logging
@@ -59,8 +59,44 @@ def event_details(request, event_id=None):
             event = Event.objects.get(pk=event_id)
             data = json.loads(request.read())
 
-            #publish("event_details", "new", data)
-            return json_response({})
+            if "sd" in data:
+                key = data["sd"].keys()[0]
+                value = data["sd"].get(key)
+
+                attributes = StructuredData.objects.filter(event=event, key=key)
+
+                if not attributes:
+                    attribute = StructuredData(event=event, key=key, value=value)
+                    attribute.save()
+                elif len(attributes) == 1:
+                    attribute = attributes[0]
+                    attribute.value = value
+                    attribute.save()
+                else:
+                    return json_response({"msg": "Tried to set attribute with more than one value."}, "error", 400)
+
+                payload = {
+                    "type": "sd",
+                    "op_type": "set",
+                    "event_id": event.id,
+                    "data": {key: value},
+                }
+                publish("event_details", "new", payload, event_id=event.id)
+                return json_response({"msg": ""})
+
+            elif "details" in data:
+                event.details = data["details"]
+                event.save()
+                payload = {
+                    "type": "details",
+                    "op_type": "set",
+                    "event_id": event.id,
+                    "data": event.details,
+                }
+                publish("event_details", "new", payload, event_id=event.id)
+                return json_response({"msg": ""})
+
+            return json_response({"msg": str(err)}, "error", 400)
         except IntegrityError as err:
             return json_response({"msg": str(err)}, "error", 400)
         except DatabaseError as err:
@@ -73,10 +109,43 @@ def event_details(request, event_id=None):
             event = Event.objects.get(pk=event_id)
             data = json.loads(request.read())
 
-            #publish("event_details", "update", data)
-            return json_response({})
-        except Event.DoesNotExist as err:
-            return json_response({"msg": str(err)}, "error", 404)
+            if "sd" in data:
+                key = data["sd"].keys()[0]
+                value = data["sd"].get(key)
+
+
+                attribute = StructuredData(event=event, key=key, value=value)
+                attribute.save()
+
+                payload = {
+                    "type": "sd",
+                    "op_type": "append",
+                    "event_id": event.id,
+                    "data": {key: value},
+                }
+                publish("event_details", "append", payload, event_id=event.id)
+                return json_response({"msg": ""})
+
+            elif "details" in data:
+                if event.details:
+                    event.details = event.details + data["details"]
+                else:
+                    event.details = data["details"]
+                event.save()
+                payload = {
+                    "type": "details",
+                    "op_type": "append",
+                    "event_id": event.id,
+                    "data": data["details"],
+                }
+                publish("event_details", "append", payload, event_id=event.id)
+                return json_response({"msg": ""})
+
+            return json_response({"msg": str(err)}, "error", 400)
+        except IntegrityError as err:
+            return json_response({"msg": str(err)}, "error", 400)
+        except DatabaseError as err:
+            return json_response({"msg": str(err)}, "error", 500)
 
     # Get Details for an event
     if request.method == "GET":

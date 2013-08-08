@@ -35,8 +35,6 @@ class Event(models.Model):
         data = {}
         sd = self.structureddata_set.all()
         for item in sd:
-            print item, item.key, item.value
-            print data
             if key and key != item.key:
                 continue
             if item.key in data:

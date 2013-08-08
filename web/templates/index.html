@@ -81,19 +81,21 @@
     socket.on('auditor.event.new', function(data){
         var data = $.parseJSON(data);
         var new_row = $(".event-row:first").clone(true);
-        var new_row_details = $(".event-row-details:first").clone();
+
+        var new_row_details = "";
+        new_row_details += "<tr id='event-row-details-" + data.id + "' class='event-row-details'>";
+        new_row_details += "  <td class='event-extend' colspan='7'>";
+        new_row_details += "    <div id='collapse-event-" + data.id + "' class='collapse collapse-event'>";
+        new_row_details += "      <div id='event-details-" + data.id + "' class='event-details'></div>";
+        new_row_details += "    </div>";
+        new_row_details += "  </td>";
+        new_row_details += "</tr>";
+
 
         new_row.attr('id', 'event-row-' + data.id);
         new_row.css('display', 'none');
-        new_row_details.attr('id', 'event-row-details-' + data.id);
 
         updateRow(new_row, data);
-
-        new_row_details.find(".collapse-event")
-            .attr("id", "collapse-event-" + data.id)
-            .removeClass("in")
-            .css("height", "");
-        new_row_details.find(".event-details").attr("id", "event-" + data.id);
 
         if ($(".event-row").length >= 50){
             $(".event-row").last().remove()
@@ -115,18 +117,38 @@
 
     });
 
+    socket.on('auditor.event_details.new', function(data){
+        data = $.parseJSON(data);
+        if (data.type === "sd") {
+            console.log(data);
+        } else if (data.type === "details") {
+            $("#event-details-text-" + data.event_id).html(data.data);
+        }
+    });
+
+    socket.on('auditor.event_details.append', function(data){
+        data = $.parseJSON(data);
+        if (data.type === "sd") {
+            console.log(data);
+        } else if (data.type === "details") {
+            var obj = $("#event-details-text-" + data.event_id);
+            if (obj.hasClass("no-details")){
+                obj.html(data.data);
+                obj.removeClass("no-details");
+            } else {
+                $("#event-details-text-" + data.event_id).append(data.data);
+            }
+        }
+    });
 
     $("#event-table").on('show', '.collapse-event', function(event){
         var obj = $(this).find('.event-details');
         var event_id = obj.attr("id").split("-")[2];
-        if (obj.hasClass("loading") || obj.hasClass("filled")) return;
-        obj.addClass("loading");
-        obj.append('<i class="icon-spinner icon-spin icon-2x"></i>');
+        if (obj.hasClass("filled")) return;
 
         $.get("/event/" + event_id + "/details/", function(data){
             socket.emit("subscribe", {"type": "event_details", "event_id": event_id})
             obj.find(".icon-spinner").remove();
-            obj.removeClass("loading");
             obj.addClass("filled");
 
             var msg = "";
@@ -139,7 +161,6 @@
             } else {
                 msg += '<blockquote class="event-details-sd">'
                 $.each(data.data.sd, function(key, value){
-                    console.log(key, value);
                     if ($.isArray(value)) value = value.join(", ");
                     msg += "<b>" + key + ":</b> " + value + "<br>";
                 });
@@ -148,13 +169,15 @@
 
             msg += "<h4>Details:</h4>";
             if (!data.data.details){
-                msg += '<blockquote class="event-details-text no-details">'
+                msg += '<blockquote>'
+                msg += '<pre id="event-details-text-' + event_id + '" class="event-details-text no-details">'
                 msg += 'No Details...'
-                msg += '</blockquote>'
+                msg += '</pre></blockquote>'
             } else {
-                msg += '<blockquote class="event-details-text">'
+                msg += '<blockquote>'
+                msg += '<pre id="event-details-text-' + event_id + '" class="event-details-text">'
                 msg += data.data.details
-                msg += '</blockquote>'
+                msg += '</pre></blockquote>'
             }
             obj.append(msg);
         });

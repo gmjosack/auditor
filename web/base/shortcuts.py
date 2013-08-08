@@ -40,7 +40,7 @@ def aware_utcnow():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 
-def publish(type, cmd, data, tags=None):
+def publish(type, cmd, data, tags=None, event_id=None):
     connection = pika.BlockingConnection()
     channel = connection.channel()
 
@@ -50,9 +50,14 @@ def publish(type, cmd, data, tags=None):
         "cmd": cmd,
     }
 
+    if event_id is not None:
+        fields["event_id"] = str(event_id)
+
     if tags:
         for tag in tags:
             fields["tag_%s" % tag] = "1"
+
+    print fields
 
     channel.basic_publish(exchange='amq.headers',
                           routing_key="",
