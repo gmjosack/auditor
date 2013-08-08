@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
+import pika
 import json
 import os
 import pytz
 import requests
 
 from datetime import datetime
-
-
-#TODO(gary): subscribe method
 
 
 class Event(object):
@@ -104,33 +102,42 @@ def alog(summary, tags="", user=None, level=1, end_now=True):
     return Event(response["data"])
 
 
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(description="Log or Retreive and event.")
+def subscribe(headers, callback):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
 
-    parser.add_argument("message", nargs="*", default=None,
-                        help="A message to log to Auditor")
+    result = channel.queue_declare(exclusive=True)
+    if not result:
+        raise Error('Queue didnt declare properly!')
+    queue_name = result.method.queue
 
-    parser.add_argument('--limit', default=15, type=int, help='The amount of records to return.')
-    parser.add_argument('--offset', default=0, type=int, help='The offset for records to return.')
-    parser.add_argument('--tags', default=[], action="append", help='Which tag to apply to message or filter.')
-    parser.add_argument('--user', default="", help='Which tag to apply to message or filter.')
-    parser.add_argument('--level', default=None, type=int, help='Which level to apply to message or filter')
+    def inner_callback(ch, method, properties, body):
+        data = json.loads(body)
+        callback(data)
 
-    args = parser.parse_args()
+    base_headers = {
+        "x-match": "all",
+    }
 
-    if args.message:
-        alog_args = {}
+    for key, value in headers.iteritems():
+        if key == "tags":
+            if isinstance(value, basestring):
+                value = [value]
+            for tag in value:
+                base_headers["tag_%s" % tag] = "1"
+        else:
+            base_headers[key] = value
 
-        if args.level is not None: alog_args["level"] = args.level
-        if args.user: alog_args["user"] = args.user
-        if args.tags:
-            new_tags = []
-            for tag in args.tags:
-                new_tags.extend(tag.split(","))
-            alog_args["tags"] = new_tags
+    channel.queue_bind(exchange='amq.headers',
+                       queue = queue_name,
+                       routing_key = '',
+                       arguments = base_headers)
 
-        alog(" ".join(args.message), **alog_args)
+    channel.basic_consume(inner_callback, queue=queue_name, no_ack=True)
+    try:
+        channel.start_consuming()
+    finally:
+        connection.close()
 
-if __name__ == "__main__":
-    main()
+
+
