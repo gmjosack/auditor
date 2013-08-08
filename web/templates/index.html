@@ -50,6 +50,10 @@
 
     socket.emit("subscribe", {"type": "event"})
 
+    function atBottom(elem){
+        return (elem[0].scrollHeight - elem.scrollTop()) === elem.innerHeight();
+    }
+
     function updateRow(row, data){
         row.find('td').each(function(idx, elem){
             var td = $(elem);
@@ -120,23 +124,75 @@
     socket.on('auditor.event_details.new', function(data){
         data = $.parseJSON(data);
         if (data.type === "sd") {
-            console.log(data);
+            var elem = $("#event-details-sd-" + data.event_id);
+            if (elem.hasClass("no-attributes")){
+                elem.html("");
+                elem.removeClass("no-attributes");
+            }
+
+            $.each(data.data, function(key, value){
+                var span = elem.find("span#attribute-" + data.event_id + "-" + key);
+                if (!span.length) {
+                    elem.append(
+                        "<div><b>" + key +
+                        ":</b> <span id='attribute-" + data.event_id +
+                        "-" + key +"'></span></div>");
+                }
+                span = elem.find("span#attribute-" + data.event_id + "-" + key);
+                if (data.op_type == "append"){
+                    if (!!span.html().length) span.append(", ");
+                    span.append(value);
+                } else {
+                    span.html(value);
+                }
+            });
         } else if (data.type === "details") {
-            $("#event-details-text-" + data.event_id).html(data.data);
+            var elem = $("#event-details-text-" + data.event_id);
+            if (atBottom(elem)){
+                elem.html(data.data);
+                elem.stop().scrollTop(elem[0].scrollHeight);
+            } else {
+                elem.html(data.data);
+            }
         }
     });
 
     socket.on('auditor.event_details.append', function(data){
         data = $.parseJSON(data);
         if (data.type === "sd") {
-            console.log(data);
+            var elem = $("#event-details-sd-" + data.event_id);
+            if (elem.hasClass("no-attributes")){
+                elem.html("")
+                elem.removeClass("no-attributes")
+            }
+            $.each(data.data, function(key, value){
+                var span = elem.find("span#attribute-" + data.event_id + "-" + key);
+                if (!span.length) {
+                    elem.append(
+                        "<div><b>" + key +
+                        ":</b> <span id='attribute-" + data.event_id +
+                        "-" + key +"'></span></div>");
+                }
+                span = elem.find("span#attribute-" + data.event_id + "-" + key);
+                if (data.op_type == "append"){
+                    if (!!span.html().length) span.append(", ");
+                    span.append(value);
+                } else {
+                    span.html(value);
+                }
+            });
+
         } else if (data.type === "details") {
-            var obj = $("#event-details-text-" + data.event_id);
-            if (obj.hasClass("no-details")){
-                obj.html(data.data);
-                obj.removeClass("no-details");
+            var elem = $("#event-details-text-" + data.event_id);
+            if (elem.hasClass("no-details")){
+                elem.html("");
+                elem.removeClass("no-details");
+            }
+            if (atBottom(elem)){
+                elem.append(data.data);
+                elem.stop().scrollTop(elem[0].scrollHeight);
             } else {
-                $("#event-details-text-" + data.event_id).append(data.data);
+                elem.append(data.data);
             }
         }
     });
@@ -155,14 +211,14 @@
 
             msg += "<h4>Attributes:</h4>"
             if ($.isEmptyObject(data.data.sd)){
-                msg += '<blockquote class="event-details-sd no-attributes">'
+                msg += '<blockquote id="event-details-sd-' + event_id  + '" class="event-details-sd no-attributes">'
                 msg += 'No Attributes...'
                 msg += '</blockquote>'
             } else {
-                msg += '<blockquote class="event-details-sd">'
+                msg += '<blockquote id="event-details-sd-' + event_id  + '" class="event-details-sd">'
                 $.each(data.data.sd, function(key, value){
                     if ($.isArray(value)) value = value.join(", ");
-                    msg += "<b>" + key + ":</b> " + value + "<br>";
+                    msg += "<div><b>" + key + ":</b> <span id='attribute-" + event_id + "-" + key +"'>" + value + "</span></div>";
                 });
                 msg += '</blockquote>'
             }

@@ -115,3 +115,9 @@ td{
 .event-details-sd, .event-details-text {
     margin-left: 10px;
 }
+
+.event-details-text {
+    max-height: 300px;
+    overflow-x: auto;
+    overflow-y: scroll;
+}

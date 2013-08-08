@@ -57,8 +57,6 @@ def publish(type, cmd, data, tags=None, event_id=None):
         for tag in tags:
             fields["tag_%s" % tag] = "1"
 
-    print fields
-
     channel.basic_publish(exchange='amq.headers',
                           routing_key="",
                           body=json.dumps(data, cls=DjangoJSONEncoder),

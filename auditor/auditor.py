@@ -59,7 +59,7 @@ class Event(object):
         self.id = payload.get("id")
         self.summary = payload.get("summary")
         self.user = payload.get("user")
-        self.tags = payload.get("tags", []).split(", ")
+        self.tags = payload.get("tags", "").split(", ")
         self.start = payload.get("start")
         self.end = payload.get("end")
 
