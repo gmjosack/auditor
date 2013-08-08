@@ -13,7 +13,7 @@ logging.basicConfig()
 
 def index(request):
     ctxt = {}
-    ctxt['events'] = Event.objects.order_by('-start')
+    ctxt['events'] = Event.objects.order_by('-start')[:50]
 
     return r2r(request, "index", ctxt)
 

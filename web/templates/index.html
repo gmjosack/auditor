@@ -76,7 +76,7 @@
 
     socket.on('auditor.event.new', function(data){
         var data = $.parseJSON(data);
-        var new_row = $(".event-row:first").clone();
+        var new_row = $(".event-row:first").clone(true);
         var new_row_details = $(".event-row-details:first").clone();
 
         new_row.attr('id', 'event-row-' + data.id);
@@ -91,19 +91,23 @@
             .css("height", "");
         new_row_details.find(".event-details").attr("id", "event-" + data.id);
 
+        if ($(".event-row").length >= 50){
+            $(".event-row").last().remove()
+            $(".event-row-details").last().remove()
+        }
         $(".event-row:first").before(new_row);
         new_row.after(new_row_details);
-        new_row.fadeIn(900);
+        new_row.stop().fadeTo(800, 1)
     });
 
 
     socket.on('auditor.event.update', function(data){
         var data = $.parseJSON(data);
         var row = $("#event-row-" + data.id);
-        row.fadeOut(100, function(){
+        row.stop().fadeTo(100, .3, function(){
             updateRow(row, data);
+            row.stop().fadeTo(400, 1);
         });
-        row.fadeIn();
 
     });
 
