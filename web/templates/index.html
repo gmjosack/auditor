@@ -236,6 +236,9 @@
                 msg += '</pre></blockquote>'
             }
             obj.append(msg);
+
+            var elem = $("#event-details-text-" + event_id);
+            elem.stop().scrollTop(elem[0].scrollHeight);
         });
     });
   </script>
