@@ -175,3 +175,16 @@ def event_details(request, event_id=None):
             return json_response(data)
         except Event.DoesNotExist as err:
             return json_response({"msg": str(err)}, "error", 404)
+
+
+def filtered_details(request, event_id, filter):
+    # Get Details for an event
+    if request.method == "GET":
+        try:
+            data = {}
+            event = Event.objects.get(pk=event_id)
+            #TODO(gary): Implement split as iterator.
+            data["details"] = "\n".join([line for line in event.details.split("\n") if filter in line])
+            return json_response(data)
+        except Event.DoesNotExist as err:
+            return json_response({"msg": str(err)}, "error", 404)
