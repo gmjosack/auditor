@@ -1,3 +1,5 @@
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.db import IntegrityError, DatabaseError
@@ -13,7 +15,23 @@ logging.basicConfig()
 
 def index(request):
     ctxt = {}
-    ctxt['events'] = Event.objects.order_by('-start')[:50]
+
+    page = request.GET.get("page", 1)
+    limit = int(request.GET.get("limit", 50))
+    event_list = Event.objects.order_by('-start')
+    paginator = Paginator(event_list, limit)
+
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        events = paginator.page(1)
+    except EmptyPage:
+        events = paginator.page(paginator.num_pages)
+
+    ctxt['events'] = events
+    ctxt['limit'] = limit
+    ctxt['page'] = int(page)
+    ctxt['num_pages'] = int(paginator.num_pages)
 
     return r2r(request, "index", ctxt)
 

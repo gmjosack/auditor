@@ -121,3 +121,7 @@ td{
     overflow-x: auto;
     overflow-y: scroll;
 }
+
+.dropdown-menu {
+  min-width: 0px;
+}

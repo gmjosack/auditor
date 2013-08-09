@@ -2,6 +2,21 @@
 
 {% load auditor %}
 
+{% block extra_nav %}
+  <li class="dropdown">
+      <a class="dropdown-toggle" data-toggle="dropdown" href="">
+        <i alt="Limit" class="icon-resize-horizontal"></i>
+      </a>
+      <ul class="dropdown-menu">
+        <li><a class="text-right" href="?page={{page}}&limit=10">10</a></li>
+        <li><a class="text-right" href="?page={{page}}&limit=25">25</a></li>
+        <li><a class="text-right" href="?page={{page}}&limit=50">50</a></li>
+        <li><a class="text-right" href="?page={{page}}&limit=100">100</a></li>
+      </ul>
+  </li>
+{% endblock %}
+
+
 {% block content %}
   <table id="event-table" class="table table-condensed table-hover">
     <tbody>
@@ -42,6 +57,34 @@
       {% endfor %}
     </tbody>
   </table>
+  <div class="pagination pagination-centered">
+    <div>Page {{ events.number }} of {{ events.paginator.num_pages }}.</div>
+    <ul>
+      {% if page == 1 %}
+        <li class="disabled"><a><i class="icon-double-angle-left"></i></a></li>
+      {% else %}
+        <li><a href="?limit={{limit}}"><i class="icon-double-angle-left"></i></a></li>
+      {% endif %}
+
+      {% if events.has_previous %}
+        <li><a href="?page={{events.previous_page_number}}&limit={{limit}}"><i class="icon-angle-left"></i></a></li>
+      {% else %}
+        <li class="disabled"><a><i class="icon-angle-left"></i></a></li>
+      {% endif %}
+
+      {% if events.has_next %}
+        <li><a href="?page={{events.next_page_number}}&limit={{limit}}"><i class="icon-angle-right"></i></a></li>
+      {% else %}
+        <li class="disabled"><a><i class="icon-angle-right"></i></a></li>
+      {% endif %}
+
+      {% if page == num_pages %}
+        <li class="disabled"><a><i class="icon-double-angle-right"></i></a></li>
+      {% else %}
+        <li><a href="?page={{num_pages}}&limit={{limit}}"><i class="icon-double-angle-right"></i></a></li>
+      {% endif %}
+    </ul>
+</div>
 {% endblock %}
 
 {% block script %}
