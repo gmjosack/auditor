@@ -112,10 +112,6 @@ td{
     text-align: center;
 }
 
-.event-details-sd, .event-details-text {
-    margin-left: 10px;
-}
-
 .event-details-text {
     max-height: 300px;
     overflow-x: auto;
@@ -123,5 +119,9 @@ td{
 }
 
 .dropdown-menu {
-  min-width: 0px;
+    min-width: 0px;
+}
+
+.event-details blockquote {
+    margin-left: 10px;
 }
