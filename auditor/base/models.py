@@ -18,8 +18,6 @@ class Event(models.Model):
     start = models.DateTimeField(blank=True, default=aware_utcnow)
     end = models.DateTimeField(blank=True, null=True)
 
-    details = models.TextField(blank=True, null=True)
-
     def to_dict(self):
         return dict(
             id = self.pk,
@@ -31,10 +29,10 @@ class Event(models.Model):
             end = self.end
         )
 
-    def structured_data(self, key=None):
+    def attributes(self, key=None):
         data = {}
-        sd = self.structureddata_set.all()
-        for item in sd:
+        attributes = self.attribute_set.all()
+        for item in attributes:
             if key and key != item.key:
                 continue
             if item.key in data:
@@ -45,6 +43,9 @@ class Event(models.Model):
             else:
                 data[item.key] = item.value
         return data
+
+    def streams(self):
+        return Stream.objects.filter(event=self)
 
     def update(self, data):
         if isinstance(data, basestring):
@@ -57,10 +58,18 @@ class Event(models.Model):
                 setattr(self, key, value)
 tagging.register(Event, tag_descriptor_attr="tag_list")
 
-class StructuredData(models.Model):
+
+class Attribute(models.Model):
     event = models.ForeignKey(Event)
     key = models.CharField(max_length=20)
     value = models.CharField(max_length=60)
 
     def __unicode__(self):
         return "Key: %s, Value: %s" % (self.key, self.value)
+
+
+class Stream(models.Model):
+    event = models.ForeignKey(Event)
+    name = CharField(max_length=20)
+    text = models.TextField(blank=True, null=True)
+

@@ -108,10 +108,12 @@ LOGGING = {
 # Local setting overrides
 import auditor_settings
 
-OVERRIDES = ["TIME_ZONE", "ALLOWED_HOSTS", "DATABASES", "ADMINS", "SECRET_KEY"]
+OVERRIDES = (
+    "TIME_ZONE", "ALLOWED_HOSTS", "DATABASES", "ADMINS", "SECRET_KEY",
+)
 
-for override in OVERRIDES:
-    o = getattr(auditor_settings, override, None)
-    if o is not None:
-        locals()[override] = o
+for override_name in OVERRIDES:
+    override_value = getattr(auditor_settings, override_name, None)
+    if override_value is not None:
+        locals()[override_name] = override_value
 

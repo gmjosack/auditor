@@ -6,7 +6,7 @@ from django.db import IntegrityError, DatabaseError
 
 import pika
 import json
-from models import Event, StructuredData
+from models import Event, Attribute, Stream
 from shortcuts import r2r, json_response, normalize_post, publish
 
 import logging
@@ -77,14 +77,14 @@ def event_details(request, event_id=None):
             event = Event.objects.get(pk=event_id)
             data = json.loads(request.read())
 
-            if "sd" in data:
-                key = data["sd"].keys()[0]
-                value = data["sd"].get(key)
+            if "attribute" in data:
+                key = data["attribute"].keys()[0]
+                value = data["attribute"].get(key)
 
-                attributes = StructuredData.objects.filter(event=event, key=key)
+                attributes = Attribute.objects.filter(event=event, key=key)
 
                 if not attributes:
-                    attribute = StructuredData(event=event, key=key, value=value)
+                    attribute = Attribute(event=event, key=key, value=value)
                     attribute.save()
                 elif len(attributes) == 1:
                     attribute = attributes[0]
@@ -94,7 +94,7 @@ def event_details(request, event_id=None):
                     return json_response({"msg": "Tried to set attribute with more than one value."}, "error", 400)
 
                 payload = {
-                    "type": "sd",
+                    "type": "attribute",
                     "op_type": "set",
                     "event_id": event.id,
                     "data": {key: value},
@@ -102,14 +102,16 @@ def event_details(request, event_id=None):
                 publish("event_details", "new", payload, event_id=event.id)
                 return json_response({"msg": ""})
 
-            elif "details" in data:
-                event.details = data["details"]
-                event.save()
+            elif "stream" in data:
+                stream_name = data["stream"]["name"]
+                stream_text = data["stream"]["name"]
+                stream = Stream(event=event, name=stream_name, text=stream_text)
+                stream.save()
                 payload = {
-                    "type": "details",
+                    "type": "stream",
                     "op_type": "set",
                     "event_id": event.id,
-                    "data": event.details,
+                    "data": data["stream"],
                 }
                 publish("event_details", "new", payload, event_id=event.id)
                 return json_response({"msg": ""})
@@ -127,16 +129,16 @@ def event_details(request, event_id=None):
             event = Event.objects.get(pk=event_id)
             data = json.loads(request.read())
 
-            if "sd" in data:
-                key = data["sd"].keys()[0]
-                value = data["sd"].get(key)
+            if "attribute" in data:
+                key = data["attribute"].keys()[0]
+                value = data["attribute"].get(key)
 
 
-                attribute = StructuredData(event=event, key=key, value=value)
+                attribute = Attribute(event=event, key=key, value=value)
                 attribute.save()
 
                 payload = {
-                    "type": "sd",
+                    "type": "attribute",
                     "op_type": "append",
                     "event_id": event.id,
                     "data": {key: value},
@@ -144,17 +146,19 @@ def event_details(request, event_id=None):
                 publish("event_details", "append", payload, event_id=event.id)
                 return json_response({"msg": ""})
 
-            elif "details" in data:
-                if event.details:
-                    event.details = event.details + data["details"]
+            elif "stream" in data:
+                stream_name = data["stream"]["name"]
+                stream = Stream.objects.filter(event=event, name=stream_name)
+                if stream:
+                    stream.text = stream.text + data["stream"]["text"]
                 else:
-                    event.details = data["details"]
-                event.save()
+                    stream = Stream(event=event, name=stream_name, text=data["stream"]["text"])
+                stream.save()
                 payload = {
-                    "type": "details",
+                    "type": "stream",
                     "op_type": "append",
                     "event_id": event.id,
-                    "data": data["details"],
+                    "data": data["stream"]["text"],
                 }
                 publish("event_details", "append", payload, event_id=event.id)
                 return json_response({"msg": ""})
@@ -170,21 +174,9 @@ def event_details(request, event_id=None):
         try:
             data = {}
             event = Event.objects.get(pk=event_id)
-            data["sd"] = event.structured_data()
-            data["details"] = event.details
+            data["attributes"] = event.attributes()
+            data["streams"] = event.streams()
             return json_response(data)
         except Event.DoesNotExist as err:
             return json_response({"msg": str(err)}, "error", 404)
 
-
-def filtered_details(request, event_id, filter):
-    # Get Details for an event
-    if request.method == "GET":
-        try:
-            data = {}
-            event = Event.objects.get(pk=event_id)
-            #TODO(gary): Implement split as iterator.
-            data["details"] = "\n".join([line for line in event.details.split("\n") if filter in line])
-            return json_response(data)
-        except Event.DoesNotExist as err:
-            return json_response({"msg": str(err)}, "error", 404)

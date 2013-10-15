@@ -89,6 +89,7 @@
 
 {% block script %}
   <script type="text/javascript">
+
     var socket = io.connect("http://localhost:8001");
 
     socket.emit("subscribe", {"type": "event"})
@@ -166,8 +167,8 @@
 
     socket.on('auditor.event_details.new', function(data){
         data = $.parseJSON(data);
-        if (data.type === "sd") {
-            var elem = $("#event-details-sd-" + data.event_id);
+        if (data.type === "attribute") {
+            var elem = $("#event-attribute-" + data.event_id);
             if (elem.hasClass("no-attributes")){
                 elem.html("");
                 elem.removeClass("no-attributes");
@@ -202,8 +203,8 @@
 
     socket.on('auditor.event_details.append', function(data){
         data = $.parseJSON(data);
-        if (data.type === "sd") {
-            var elem = $("#event-details-sd-" + data.event_id);
+        if (data.type === "attribute") {
+            var elem = $("#event-attribute-" + data.event_id);
             if (elem.hasClass("no-attributes")){
                 elem.html("")
                 elem.removeClass("no-attributes")
@@ -253,13 +254,13 @@
             var msg = "";
 
             msg += "<h4>Attributes:</h4>"
-            if ($.isEmptyObject(data.data.sd)){
-                msg += '<blockquote id="event-details-sd-' + event_id  + '" class="event-details-sd no-attributes">'
+            if ($.isEmptyObject(data.data.attribute)){
+                msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute no-attributes">'
                 msg += 'No Attributes...'
                 msg += '</blockquote>'
             } else {
-                msg += '<blockquote id="event-details-sd-' + event_id  + '" class="event-details-sd">'
-                $.each(data.data.sd, function(key, value){
+                msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute">'
+                $.each(data.data.attribute, function(key, value){
                     if ($.isArray(value)) value = value.join(", ");
                     msg += "<div><b>" + key + ":</b> <span id='attribute-" + event_id + "-" + key +"'>" + value + "</span></div>";
                 });
