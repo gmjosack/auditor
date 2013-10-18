@@ -150,6 +150,8 @@ def event_details(request, event_id=None):
                 stream_name = data["stream"]["name"]
                 stream = Stream.objects.filter(event=event, name=stream_name)
                 if stream:
+                    print data
+                    stream = stream.get()
                     stream.text = stream.text + data["stream"]["text"]
                 else:
                     stream = Stream(event=event, name=stream_name, text=data["stream"]["text"])
@@ -175,7 +177,7 @@ def event_details(request, event_id=None):
             data = {}
             event = Event.objects.get(pk=event_id)
             data["attributes"] = event.attributes()
-            data["streams"] = event.streams()
+            data["streams"] = [stream.to_dict() for stream in event.streams()]
             return json_response(data)
         except Event.DoesNotExist as err:
             return json_response({"msg": str(err)}, "error", 404)

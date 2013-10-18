@@ -254,13 +254,13 @@
             var msg = "";
 
             msg += "<h4>Attributes:</h4>"
-            if ($.isEmptyObject(data.data.attribute)){
+            if ($.isEmptyObject(data.data.attributes)){
                 msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute no-attributes">'
                 msg += 'No Attributes...'
                 msg += '</blockquote>'
             } else {
                 msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute">'
-                $.each(data.data.attribute, function(key, value){
+                $.each(data.data.attributes, function(key, value){
                     if ($.isArray(value)) value = value.join(", ");
                     msg += "<div><b>" + key + ":</b> <span id='attribute-" + event_id + "-" + key +"'>" + value + "</span></div>";
                 });

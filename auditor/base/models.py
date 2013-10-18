@@ -70,6 +70,14 @@ class Attribute(models.Model):
 
 class Stream(models.Model):
     event = models.ForeignKey(Event)
-    name = CharField(max_length=20)
+    name = models.CharField(max_length=20)
     text = models.TextField(blank=True, null=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "event_id": self.event.id,
+            "name": self.name,
+            "text": self.text,
+        }
 

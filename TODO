@@ -1,8 +1,9 @@
-Start using javascript templates.
+Start using javascript templates. (Looking at handlebars)
 Move most of the javascript logic into it's own library
 Clean up the API
 Need to be able to get events from the API
 Filtering (search and details)
-More config options / less hard-coding.
+More config options / less hard-coding. (Rabbitmq/WebSocket Server)
 Clean up naming on index
 Allow multiple detail streams (stdout/stderr)
+Move to data- attributes.
