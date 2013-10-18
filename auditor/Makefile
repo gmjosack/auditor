@@ -8,6 +8,6 @@ coffee:
 
 handlebars:
 	@for template in handlebars/*.handlebars; do \
-		echo handlebars $$template -mf static/$${template%.handlebars}.js; \
-		handlebars $$template -mf static/$${template%.handlebars}.js; \
+		echo handlebars $$template -mf static/$${template%.handlebars}.min.js; \
+		handlebars $$template -mf static/$${template%.handlebars}.min.js; \
 	done
