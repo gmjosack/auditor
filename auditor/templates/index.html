@@ -88,15 +88,12 @@
 {% endblock %}
 
 {% block script %}
+  <script src="/static/handlebars/event_details.js"></script>
   <script type="text/javascript">
 
     var socket = io.connect("http://localhost:8001");
 
     socket.emit("subscribe", {"type": "event"})
-
-    function atBottom(elem){
-        return (elem[0].scrollHeight - elem.scrollTop()) === elem.innerHeight();
-    }
 
     function updateRow(row, data){
         row.find('td').each(function(idx, elem){
@@ -192,7 +189,7 @@
             });
         } else if (data.type === "details") {
             var elem = $("#event-details-text-" + data.event_id);
-            if (atBottom(elem)){
+            if (auditor.atBottom(elem)){
                 elem.html(data.data);
                 elem.stop().scrollTop(elem[0].scrollHeight);
             } else {
@@ -232,7 +229,7 @@
                 elem.html("");
                 elem.removeClass("no-details");
             }
-            if (atBottom(elem)){
+            if (auditor.atBottom(elem)){
                 elem.append(data.data);
                 elem.stop().scrollTop(elem[0].scrollHeight);
             } else {
@@ -251,34 +248,7 @@
             obj.find(".icon-spinner").remove();
             obj.addClass("filled");
 
-            var msg = "";
-
-            msg += "<h4>Attributes:</h4>"
-            if ($.isEmptyObject(data.data.attributes)){
-                msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute no-attributes">'
-                msg += 'No Attributes...'
-                msg += '</blockquote>'
-            } else {
-                msg += '<blockquote id="event-attribute-' + event_id  + '" class="event-attribute">'
-                $.each(data.data.attributes, function(key, value){
-                    if ($.isArray(value)) value = value.join(", ");
-                    msg += "<div><b>" + key + ":</b> <span id='attribute-" + event_id + "-" + key +"'>" + value + "</span></div>";
-                });
-                msg += '</blockquote>'
-            }
-
-            msg += "<h4>Details:</h4>";
-            if (!data.data.details){
-                msg += '<blockquote>'
-                msg += '<pre id="event-details-text-' + event_id + '" class="event-details-text no-details">'
-                msg += 'No Details...'
-                msg += '</pre></blockquote>'
-            } else {
-                msg += '<blockquote>'
-                msg += '<pre id="event-details-text-' + event_id + '" class="event-details-text">'
-                msg += data.data.details
-                msg += '</pre></blockquote>'
-            }
+            var msg = Handlebars.templates.event_details($.extend({event_id: event_id}, data.data));
             obj.append(msg);
 
             var elem = $("#event-details-text-" + event_id);
