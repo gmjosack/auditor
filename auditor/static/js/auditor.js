@@ -22,9 +22,8 @@
   Handlebars.registerHelper('ifEmpty', function(context, options) {
     if ($.isEmptyObject(context)) {
       return options.fn(this);
-    } else {
-      return options.inverse(this);
     }
+    return options.inverse(this);
   });
 
 }).call(this);

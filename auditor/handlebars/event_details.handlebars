@@ -1,4 +1,5 @@
 <h4>Attributes:</h4>
+
 {{#ifEmpty attributes}}
     <blockquote id="event-attribute-{{event_id}}" class="event-attribute no-attributes">
       No Attributes...
@@ -7,18 +8,19 @@
     <blockquote id="event-attribute-{{event_id}}" class="event-attribute">
     {{#each attributes}}
         <div><b>{{@key}}:</b>
-            <span id='attribute-{{event_id}}-{{@key}}'>{{this}}</span>
+            <span id='attribute-{{../event_id}}-{{@key}}'>{{this}}</span>
         </div>
     {{/each}}
     </blockquote>
 {{/ifEmpty}}
 
 <h4>Details:</h4>
+
 {{#if streams}}
   {{#each streams}}
     {{this.name}}
     <blockquote>
-      <pre id="event-stream-text-{{event_id}}" class="event-stream-text">{{this.text}}</pre>
+      <pre id="event-stream-text-{{../event_id}}" class="event-stream-text">{{this.text}}</pre>
     </blockquote>
   {{/each}}
 {{else}}

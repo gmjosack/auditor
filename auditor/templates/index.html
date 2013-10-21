@@ -251,7 +251,7 @@
             var msg = Handlebars.templates.event_details($.extend({event_id: event_id}, data.data));
             obj.append(msg);
 
-            var elem = $("#event-details-text-" + event_id);
+            var elem = $("#event-stream-text-" + event_id);
             elem.stop().scrollTop(elem[0].scrollHeight);
         });
     });

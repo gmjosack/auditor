@@ -176,6 +176,7 @@ def event_details(request, event_id=None):
         try:
             data = {}
             event = Event.objects.get(pk=event_id)
+            data["event_id"] = event.id
             data["attributes"] = event.attributes()
             data["streams"] = [stream.to_dict() for stream in event.streams()]
             return json_response(data)
