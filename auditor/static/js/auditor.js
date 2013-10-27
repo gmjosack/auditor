@@ -72,20 +72,31 @@
   };
 
   auditor.addStream = function(data) {
-    var atBottom, elem;
-    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.data.name + "']");
-    if (elem.hasClass("no-details")) {
-      elem.html("");
-      elem.removeClass("no-details");
+    var active, atBottom, elem, new_stream, no_text;
+    active = "";
+    no_text = $("span.event-stream-text.no-text[data-id='" + data.event_id + "']");
+    if (no_text.length) {
+      no_text.remove();
+      active = "active";
     }
+    new_stream = false;
+    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.data.name + "']");
+    if (!elem.length) {
+      new_stream = true;
+      $("#event-details-" + data.event_id + " .nav-tabs").append("<li class=\"" + active + "\">\n  <a href=\"#event-stream-" + data.event_id + "-" + data.data.name + "\" data-toggle=\"tab\">" + data.data.name + "</a>\n<li>");
+      $("#event-details-" + data.event_id + " .tab-content").append("<div class=\"tab-pane " + active + "\" id=\"event-stream-" + data.event_id + "-" + data.data.name + "\">\n    <pre data-id=\"" + data.event_id + "\" data-name=\"" + data.data.name + "\" class=\"event-stream-text\">" + data.data.text + "</pre>\n</div>");
+    }
+    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.data.name + "']");
     atBottom = false;
     if (auditor.atBottom(elem)) {
       atBottom = true;
     }
-    if (data.op_type === "set") {
-      elem.html(data.data.text);
-    } else if (data.op_type === "append") {
-      elem.append(data.data.text);
+    if (!new_stream) {
+      if (data.op_type === "set") {
+        elem.html(data.data.text);
+      } else if (data.op_type === "append") {
+        elem.append(data.data.text);
+      }
     }
     if (atBottom) {
       return elem.stop().scrollTop(elem[0].scrollHeight);

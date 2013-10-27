@@ -42,7 +42,6 @@ auditor.addAttribute = (data) ->
         elem.html("")
         elem.removeClass("no-attributes")
 
-    # attribute-event_id-key has been moved to data attribtues.
     $.each data.data, (key, value) ->
         span = elem.find("span[data-attribute-key='#{key}'][data-id='#{data.event_id}']")
         if not span.length
@@ -64,19 +63,39 @@ auditor.addAttribute = (data) ->
 
 
 auditor.addStream = (data) ->
+    active = ""
+    no_text = $("span.event-stream-text.no-text[data-id='#{data.event_id}']")
+    if no_text.length
+        no_text.remove()
+        active = "active"
+
+    new_stream = false
     elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.data.name}']")
-    if elem.hasClass("no-details")
-        elem.html("")
-        elem.removeClass("no-details")
+    if not elem.length
+        new_stream = true
+        $("#event-details-#{data.event_id} .nav-tabs").append("""
+            <li class="#{active}">
+              <a href="#event-stream-#{data.event_id}-#{data.data.name}" data-toggle="tab">#{data.data.name}</a>
+            <li>
+        """)
+
+        $("#event-details-#{data.event_id} .tab-content").append("""
+            <div class="tab-pane #{active}" id="event-stream-#{data.event_id}-#{data.data.name}">
+                <pre data-id="#{data.event_id}" data-name="#{data.data.name}" class="event-stream-text">#{data.data.text}</pre>
+            </div>
+        """)
+
+    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.data.name}']")
 
     atBottom = false
     if auditor.atBottom(elem)
         atBottom = true
 
-    if data.op_type == "set"
-        elem.html(data.data.text)
-    else if data.op_type == "append"
-        elem.append(data.data.text)
+    if not new_stream
+        if data.op_type == "set"
+            elem.html(data.data.text)
+        else if data.op_type == "append"
+            elem.append(data.data.text)
 
     if atBottom
         elem.stop().scrollTop(elem[0].scrollHeight)
