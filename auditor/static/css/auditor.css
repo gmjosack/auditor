@@ -93,8 +93,8 @@ td.event-expander {
     text-align: center;
 }
 
-th.event-start    { width: 160px; }
-th.event-end      { width: 160px; }
+th.event-start    { width: 165px; }
+th.event-end      { width: 165px; }
 th.event-expander { width: 40px;  }
 th.event-progress { width: 200px; }
 
