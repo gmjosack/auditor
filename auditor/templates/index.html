@@ -18,7 +18,7 @@
 
 
 {% block content %}
-  <table id="event-table" class="table table-condensed table-hover">
+  <table id="events-table" class="table table-condensed table-hover">
     <tbody>
       <tr>
         <th class="event-expander">&nbsp;</th>
@@ -34,7 +34,7 @@
 
         <tr id="event-row-{{event.id}}" class="event-row">
           <td class="event-expander">
-            <a data-toggle="collapse" data-target="#collapse-event-{{event.id}}" class="btn">
+            <a data-toggle="collapse" data-target="#toggle-details-{{event.id}}" class="btn">
               <i class="icon-level-down"></i>
             </a>
           </td>
@@ -46,9 +46,9 @@
           <td class="event-end">{{event.end|default_if_none:""}}</td>
         </tr>
 
-        <tr id="event-row-details-{{event.id}}" class="event-row-details">
+        <tr id="event-details-row-{{event.id}}" class="event-details-row">
           <td class="event-extend" colspan="7">
-            <div id="collapse-event-{{event.id}}" class="collapse collapse-event">
+            <div id="toggle-details-{{event.id}}" class="collapse toggle-details">
               <div id="event-details-{{event.id}}" class="event-details"></div>
             </div>
           </td>
@@ -88,10 +88,17 @@
 {% endblock %}
 
 {% block script %}
+  <script src="/static/handlebars/event_attributes.min.js"></script>
+  <script src="/static/handlebars/event_streams.min.js"></script>
   <script src="/static/handlebars/event_details.min.js"></script>
+  <script src="/static/handlebars/event_row_summary.min.js"></script>
+  <script src="/static/handlebars/event_row_details.min.js"></script>
+  <script src="/static/handlebars/event_row.min.js"></script>
   <script type="text/javascript">
 
     var socket = io.connect("http://localhost:8001");
+    // Allow all templates to also be used as partials.
+    Handlebars.partials = Handlebars.templates;
 
     socket.emit("subscribe", {"type": "event"})
 
@@ -99,7 +106,7 @@
         row.find('td').each(function(idx, elem){
             var td = $(elem);
             if (td.hasClass("event-expander")){
-                td.find("a").attr("data-target", "#collapse-event-" + data.id);
+                td.find("a").attr("data-target", "#toggle-details-" + data.id);
             }
             if (td.hasClass("event-summary")) td.html(data.summary || "");
             if (td.hasClass("event-user")) td.html(data.user || "");
@@ -125,30 +132,21 @@
 
     socket.on('auditor.event.new', function(data){
         var data = $.parseJSON(data);
-        var new_row = $(".event-row:first").clone(true);
 
-        var new_row_details = "";
-        new_row_details += "<tr id='event-row-details-" + data.id + "' class='event-row-details'>";
-        new_row_details += "  <td class='event-extend' colspan='7'>";
-        new_row_details += "    <div id='collapse-event-" + data.id + "' class='collapse collapse-event'>";
-        new_row_details += "      <div id='event-details-" + data.id + "' class='event-details'></div>";
-        new_row_details += "    </div>";
-        new_row_details += "  </td>";
-        new_row_details += "</tr>";
+        if (data.start) data.start = moment(data.start).format();
+        if (data.end) data.end = moment(data.end).format();
 
-
-        new_row.attr('id', 'event-row-' + data.id);
-        new_row.css('display', 'none');
-
-        updateRow(new_row, data);
+        var new_rows = Handlebars.templates.event_row({ event: data });
 
         if ($(".event-row").length >= 50){
             $(".event-row").last().remove()
-            $(".event-row-details").last().remove()
+            $(".event-details-row").last().remove()
         }
-        $(".event-row:first").before(new_row);
-        new_row.after(new_row_details);
-        new_row.stop().fadeTo(800, 1)
+
+        $(".event-row:first").before(new_rows);
+        // Don't cache this lookup as we want to grab the
+        // new row we just added.
+        $(".event-row:first").stop().fadeTo(800, 1);
     });
 
 
@@ -165,12 +163,14 @@
     socket.on('auditor.event_details.new', function(data){
         data = $.parseJSON(data);
         if (data.type === "attribute") {
-            var elem = $("#event-attribute-" + data.event_id);
+            var elem = $("#event-attributes-" + data.event_id);
             if (elem.hasClass("no-attributes")){
                 elem.html("");
                 elem.removeClass("no-attributes");
             }
 
+
+            // attribute-event_id-key has been moved to data attribtues.
             $.each(data.data, function(key, value){
                 var span = elem.find("span#attribute-" + data.event_id + "-" + key);
                 if (!span.length) {
@@ -201,7 +201,7 @@
     socket.on('auditor.event_details.append', function(data){
         data = $.parseJSON(data);
         if (data.type === "attribute") {
-            var elem = $("#event-attribute-" + data.event_id);
+            var elem = $("#event-attributes-" + data.event_id);
             if (elem.hasClass("no-attributes")){
                 elem.html("")
                 elem.removeClass("no-attributes")
@@ -238,21 +238,26 @@
         }
     });
 
-    $("#event-table").on('show', '.collapse-event', function(event){
+    $("#events-table").on('show', '.toggle-details', function(event){
+
         var obj = $(this).find('.event-details');
         var event_id = obj.attr("id").split("-")[2];
+
+        // No need to do that ajax request if we already have
+        // a subscribed event.
         if (obj.hasClass("filled")) return;
 
         $.get("/event/" + event_id + "/details/", function(data){
-            socket.emit("subscribe", {"type": "event_details", "event_id": event_id})
-            obj.find(".icon-spinner").remove();
+            socket.emit("subscribe", {"type": "event_details", "event_id": event_id});
             obj.addClass("filled");
 
-            var msg = Handlebars.templates.event_details($.extend({event_id: event_id}, data.data));
-            obj.append(msg);
+            obj.append(Handlebars.templates.event_details(data.data));
 
-            var elem = $("#event-stream-text-" + event_id);
-            elem.stop().scrollTop(elem[0].scrollHeight);
+            var elems = obj.find(".event-stream-text");
+            $.each(elems, function(idx, elem){
+                elem = $(elem);
+                elem.stop().scrollTop(elem.scrollHeight);
+            });
         });
     });
   </script>

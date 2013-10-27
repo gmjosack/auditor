@@ -1,0 +1,25 @@
+{{#if streams}}
+  <blockquote>
+
+    <ul class="nav nav-tabs">
+      {{#each streams}}
+        <li class="{{#first @index}}active{{/first}}">
+          <a href="#event-stream-{{../event_id}}-{{this.name}}" data-toggle="tab">{{this.name}}</a>
+        <li>
+      {{/each}}
+    </ul>
+
+    <div class="tab-content">
+      {{#each streams}}
+        <div class="tab-pane {{#first @index}}active{{/first}}"
+                id="event-stream-{{../event_id}}-{{this.name}}">
+          <pre data-id="{{../event_id}}" data-name="{{this.name}}" class="event-stream-text">{{this.text}}</pre>
+        </div>
+      {{/each}}
+    </div>
+  <blockquote>
+{{else}}
+  <blockquote>
+    <span data-id="{{event_id}}" class="event-stream-text no-text">No Streams...</pre>
+  </blockquote>
+{{/if}}

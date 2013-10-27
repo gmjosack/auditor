@@ -1,0 +1,13 @@
+{{#ifEmpty attributes}}
+    <blockquote id="event-attributes-{{event_id}}" class="event-attributes no-attributes">
+      No Attributes...
+    </blockquote>
+{{else}}
+    <blockquote id="event-attributes-{{event_id}}" class="event-attributes">
+    {{#each attributes}}
+        <div><b>{{@key}}:</b>
+            <span data-attribute-key="{{@key}}" data-id="{{../event_id}}" class="event-attribute">{{this}}</span>
+        </div>
+    {{/each}}
+    </blockquote>
+{{/ifEmpty}}

@@ -64,8 +64,11 @@ def event(request, event_id=None):
             return json_response({"msg": str(err)}, "error", 404)
 
 
+    if request.method == "GET" and event_id is None:
+        pass
     #TODO(gary): View Event
     #TODO(gary): View Events
+
 
     return json_response({"msg": "Invalid Request."}, "error", 400)
 
