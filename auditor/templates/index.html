@@ -102,33 +102,6 @@
 
     socket.emit("subscribe", {"type": "event"})
 
-    function updateRow(row, data){
-        row.find('td').each(function(idx, elem){
-            var td = $(elem);
-            if (td.hasClass("event-expander")){
-                td.find("a").attr("data-target", "#toggle-details-" + data.id);
-            }
-            if (td.hasClass("event-summary")) td.html(data.summary || "");
-            if (td.hasClass("event-user")) td.html(data.user || "");
-            if (td.hasClass("event-tags")) td.html(data.tags || "");
-            if (td.hasClass("event-level")) td.html(data.level || "");
-            if (td.hasClass("event-start")){
-                if (data.start) {
-                    td.html(moment(data.start).format());
-                } else {
-                    td.html("");
-                }
-            }
-            if (td.hasClass("event-end")){
-                if (data.end) {
-                    td.html(moment(data.end).format());
-                } else {
-                    td.html("");
-                }
-            }
-        });
-    }
-
 
     socket.on('auditor.event.new', function(data){
         var data = $.parseJSON(data);
@@ -154,7 +127,7 @@
         var data = $.parseJSON(data);
         var row = $("#event-row-" + data.id);
         row.stop().fadeTo(100, .3, function(){
-            updateRow(row, data);
+            auditor.updateRow(row, data);
             row.stop().fadeTo(400, 1);
         });
 
@@ -163,31 +136,8 @@
     socket.on('auditor.event_details.new', function(data){
         data = $.parseJSON(data);
         if (data.type === "attribute") {
-            var elem = $("#event-attributes-" + data.event_id);
-            if (elem.hasClass("no-attributes")){
-                elem.html("");
-                elem.removeClass("no-attributes");
-            }
-
-
-            // attribute-event_id-key has been moved to data attribtues.
-            $.each(data.data, function(key, value){
-                var span = elem.find("span#attribute-" + data.event_id + "-" + key);
-                if (!span.length) {
-                    elem.append(
-                        "<div><b>" + key +
-                        ":</b> <span id='attribute-" + data.event_id +
-                        "-" + key +"'></span></div>");
-                }
-                span = elem.find("span#attribute-" + data.event_id + "-" + key);
-                if (data.op_type == "append"){
-                    if (!!span.html().length) span.append(", ");
-                    span.append(value);
-                } else {
-                    span.html(value);
-                }
-            });
-        } else if (data.type === "details") {
+            auditor.addAttribute(data);
+        } else if (data.type === "stream") {
             var elem = $("#event-details-text-" + data.event_id);
             if (auditor.atBottom(elem)){
                 elem.html(data.data);
@@ -201,29 +151,8 @@
     socket.on('auditor.event_details.append', function(data){
         data = $.parseJSON(data);
         if (data.type === "attribute") {
-            var elem = $("#event-attributes-" + data.event_id);
-            if (elem.hasClass("no-attributes")){
-                elem.html("")
-                elem.removeClass("no-attributes")
-            }
-            $.each(data.data, function(key, value){
-                var span = elem.find("span#attribute-" + data.event_id + "-" + key);
-                if (!span.length) {
-                    elem.append(
-                        "<div><b>" + key +
-                        ":</b> <span id='attribute-" + data.event_id +
-                        "-" + key +"'></span></div>");
-                }
-                span = elem.find("span#attribute-" + data.event_id + "-" + key);
-                if (data.op_type == "append"){
-                    if (!!span.html().length) span.append(", ");
-                    span.append(value);
-                } else {
-                    span.html(value);
-                }
-            });
-
-        } else if (data.type === "details") {
+            auditor.addAttribute(data);
+        } else if (data.type === "stream") {
             var elem = $("#event-details-text-" + data.event_id);
             if (elem.hasClass("no-details")){
                 elem.html("");
