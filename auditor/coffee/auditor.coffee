@@ -1,14 +1,12 @@
 window.auditor = {}
 
-class Attribute
-    constructor: (@name, @values) ->
 
 window.auditor.atBottom = (elem) ->
     return (elem[0].scrollHeight - elem.scrollTop()) == elem.innerHeight()
 
 
 window.auditor.updateRow = (row, event) ->
-    row.find('td').each (idx, elem) ->
+    row.find("td").each (idx, elem) ->
         td = $(elem)
 
         if td.hasClass("event-expander")
@@ -44,11 +42,16 @@ window.auditor.addAttribute = (data) ->
 
     # attribute-event_id-key has been moved to data attribtues.
     $.each data.data, (key, value) ->
-        span = elem.find("span#attribute-#{data.event_id}-#{key}")
+        span = elem.find("span[data-attribute-key='#{key}'][data-id='#{data.event_id}']")
         if not span.length
-            elem.append("<div><b>#{key}:</b> <span id='attribute-#{data.event_id}-#{key}'></span></div>")
+            elem.append("""
+                <div>
+                    <b>#{key}:</b>
+                    <span data-attribute-key="#{key}" data-id="#{data.event_id}" class="event-attribute"></span>
+                </div>
+            """)
 
-        span = elem.find("span#attribute-#{data.event_id}-#{key}")
+        span = elem.find("span[data-attribute-key='#{key}'][data-id='#{data.event_id}']")
 
         if data.op_type == "append"
             if !!span.html().length
@@ -57,11 +60,19 @@ window.auditor.addAttribute = (data) ->
         else
             span.html(value)
 
-Handlebars.registerHelper 'ifEmpty', (context, options) ->
+
+Handlebars.registerHelper "ifEmpty", (context, options) ->
     if $.isEmptyObject context
         return options.fn this
     return options.inverse this
 
-Handlebars.registerHelper 'first', (context, options) ->
+
+Handlebars.registerHelper "first", (context, options) ->
     if context == 0
         return options.fn this
+
+
+Handlebars.registerHelper "join", (context, options) ->
+    if _.isString(context)
+        context = [context]
+    return context.join(options.hash.delimeter)

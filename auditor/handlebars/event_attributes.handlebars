@@ -6,7 +6,7 @@
     <blockquote id="event-attributes-{{event_id}}" class="event-attributes">
     {{#each attributes}}
         <div><b>{{@key}}:</b>
-            <span data-attribute-key="{{@key}}" data-id="{{../event_id}}" class="event-attribute">{{this}}</span>
+            <span data-attribute-key="{{@key}}" data-id="{{../event_id}}" class="event-attribute">{{join this delimeter=", "}}</span>
         </div>
     {{/each}}
     </blockquote>
