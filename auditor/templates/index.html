@@ -106,7 +106,7 @@
 
         var new_rows = Handlebars.templates.event_row({ event: data });
 
-        if ($(".event-row").length >= 50){
+        if ($(".event-row").length >= {{limit}}){
             $(".event-row").last().remove()
             $(".event-details-row").last().remove()
         }
@@ -133,13 +133,7 @@
         if (data.type === "attribute") {
             auditor.addAttribute(data);
         } else if (data.type === "stream") {
-            var elem = $("#event-details-text-" + data.event_id);
-            if (auditor.atBottom(elem)){
-                elem.html(data.data);
-                elem.stop().scrollTop(elem[0].scrollHeight);
-            } else {
-                elem.html(data.data);
-            }
+            auditor.addStream(data)
         }
     });
 
@@ -148,17 +142,7 @@
         if (data.type === "attribute") {
             auditor.addAttribute(data);
         } else if (data.type === "stream") {
-            var elem = $("#event-details-text-" + data.event_id);
-            if (elem.hasClass("no-details")){
-                elem.html("");
-                elem.removeClass("no-details");
-            }
-            if (auditor.atBottom(elem)){
-                elem.append(data.data);
-                elem.stop().scrollTop(elem[0].scrollHeight);
-            } else {
-                elem.append(data.data);
-            }
+            auditor.addStream(data)
         }
     });
 

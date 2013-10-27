@@ -107,8 +107,13 @@ def event_details(request, event_id=None):
 
             elif "stream" in data:
                 stream_name = data["stream"]["name"]
-                stream_text = data["stream"]["name"]
-                stream = Stream(event=event, name=stream_name, text=stream_text)
+                stream_text = data["stream"]["text"]
+                stream = Stream.objects.filter(event=event, name=stream_name)
+                if stream:
+                    stream = stream.get()
+                    stream.text = stream_text
+                else:
+                    stream = Stream(event=event, name=stream_name, text=stream_text)
                 stream.save()
                 payload = {
                     "type": "stream",
@@ -153,7 +158,6 @@ def event_details(request, event_id=None):
                 stream_name = data["stream"]["name"]
                 stream = Stream.objects.filter(event=event, name=stream_name)
                 if stream:
-                    print data
                     stream = stream.get()
                     stream.text = stream.text + data["stream"]["text"]
                 else:
@@ -163,7 +167,7 @@ def event_details(request, event_id=None):
                     "type": "stream",
                     "op_type": "append",
                     "event_id": event.id,
-                    "data": data["stream"]["text"],
+                    "data": data["stream"],
                 }
                 publish("event_details", "append", payload, event_id=event.id)
                 return json_response({"msg": ""})

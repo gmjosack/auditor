@@ -1,11 +1,13 @@
-window.auditor = {}
+auditor = {}
+
+window.auditor = auditor
 
 
-window.auditor.atBottom = (elem) ->
+auditor.atBottom = (elem) ->
     return (elem[0].scrollHeight - elem.scrollTop()) == elem.innerHeight()
 
 
-window.auditor.updateRow = (row, event) ->
+auditor.updateRow = (row, event) ->
     row.find("td").each (idx, elem) ->
         td = $(elem)
 
@@ -34,7 +36,7 @@ window.auditor.updateRow = (row, event) ->
                 td.html("")
 
 
-window.auditor.addAttribute = (data) ->
+auditor.addAttribute = (data) ->
     elem = $("#event-attributes-#{data.event_id}")
     if elem.hasClass("no-attributes")
         elem.html("")
@@ -59,6 +61,25 @@ window.auditor.addAttribute = (data) ->
             span.append(value)
         else
             span.html(value)
+
+
+auditor.addStream = (data) ->
+    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.data.name}']")
+    if elem.hasClass("no-details")
+        elem.html("")
+        elem.removeClass("no-details")
+
+    atBottom = false
+    if auditor.atBottom(elem)
+        atBottom = true
+
+    if data.op_type == "set"
+        elem.html(data.data.text)
+    else if data.op_type == "append"
+        elem.append(data.data.text)
+
+    if atBottom
+        elem.stop().scrollTop(elem[0].scrollHeight)
 
 
 Handlebars.registerHelper "ifEmpty", (context, options) ->

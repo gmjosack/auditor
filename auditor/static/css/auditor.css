@@ -112,7 +112,7 @@ td{
     text-align: center;
 }
 
-.event-details-text {
+.event-stream-text {
     max-height: 300px;
     overflow-x: auto;
     overflow-y: scroll;
