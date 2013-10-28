@@ -35,34 +35,40 @@ auditor.updateRow = (row, event) ->
             else
                 td.html("")
 
+auditor.updateEventDetails = (data) ->
+    $.each data.details, (idx, detail) ->
+        if detail.details_type == "attribute"
+            auditor.updateAttribute($.extend({ event_id: data.event_id}, detail))
+        else if detail.details_type == "stream"
+            auditor.updateStream($.extend({ event_id: data.event_id}, detail))
 
-auditor.addAttribute = (data) ->
+
+auditor.updateAttribute = (data) ->
     elem = $("#event-attributes-#{data.event_id}")
     if elem.hasClass("no-attributes")
         elem.html("")
         elem.removeClass("no-attributes")
 
-    $.each data.data, (key, value) ->
-        span = elem.find("span[data-attribute-key='#{key}'][data-id='#{data.event_id}']")
-        if not span.length
-            elem.append("""
-                <div>
-                    <b>#{key}:</b>
-                    <span data-attribute-key="#{key}" data-id="#{data.event_id}" class="event-attribute"></span>
-                </div>
-            """)
+    span = elem.find("span[data-attribute-key='#{data.name}'][data-id='#{data.event_id}']")
+    if not span.length
+        elem.append("""
+            <div>
+                <b>#{data.name}:</b>
+                <span data-attribute-key="#{data.name}" data-id="#{data.event_id}" class="event-attribute"></span>
+            </div>
+        """)
 
-        span = elem.find("span[data-attribute-key='#{key}'][data-id='#{data.event_id}']")
+    span = elem.find("span[data-attribute-key='#{data.name}'][data-id='#{data.event_id}']")
 
-        if data.op_type == "append"
-            if !!span.html().length
-                span.append(", ")
-            span.append(value)
-        else
-            span.html(value)
+    if data.mode == "append"
+        if !!span.html().length
+            span.append(", ")
+        span.append(data.value)
+    else
+        span.html(data.value)
 
 
-auditor.addStream = (data) ->
+auditor.updateStream = (data) ->
     active = ""
     no_text = $("span.event-stream-text.no-text[data-id='#{data.event_id}']")
     if no_text.length
@@ -70,32 +76,32 @@ auditor.addStream = (data) ->
         active = "active"
 
     new_stream = false
-    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.data.name}']")
+    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.name}']")
     if not elem.length
         new_stream = true
         $("#event-details-#{data.event_id} .nav-tabs").append("""
             <li class="#{active}">
-              <a href="#event-stream-#{data.event_id}-#{data.data.name}" data-toggle="tab">#{data.data.name}</a>
+              <a href="#event-stream-#{data.event_id}-#{data.name}" data-toggle="tab">#{data.name}</a>
             <li>
         """)
 
         $("#event-details-#{data.event_id} .tab-content").append("""
-            <div class="tab-pane #{active}" id="event-stream-#{data.event_id}-#{data.data.name}">
-                <pre data-id="#{data.event_id}" data-name="#{data.data.name}" class="event-stream-text">#{data.data.text}</pre>
+            <div class="tab-pane #{active}" id="event-stream-#{data.event_id}-#{data.name}">
+                <pre data-id="#{data.event_id}" data-name="#{data.name}" class="event-stream-text">#{data.value}</pre>
             </div>
         """)
 
-    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.data.name}']")
+    elem = $(".event-stream-text[data-id='#{data.event_id}'][data-name='#{data.name}']")
 
     atBottom = false
     if auditor.atBottom(elem)
         atBottom = true
 
     if not new_stream
-        if data.op_type == "set"
-            elem.html(data.data.text)
-        else if data.op_type == "append"
-            elem.append(data.data.text)
+        if data.mode == "set"
+            elem.html(data.value)
+        else if data.mode == "append"
+            elem.append(data.value)
 
     if atBottom
         elem.stop().scrollTop(elem[0].scrollHeight)

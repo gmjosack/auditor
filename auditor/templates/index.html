@@ -128,22 +128,9 @@
 
     });
 
-    socket.on('auditor.event_details.new', function(data){
+    socket.on('auditor.event_details.update', function(data){
         data = $.parseJSON(data);
-        if (data.type === "attribute") {
-            auditor.addAttribute(data);
-        } else if (data.type === "stream") {
-            auditor.addStream(data)
-        }
-    });
-
-    socket.on('auditor.event_details.append', function(data){
-        data = $.parseJSON(data);
-        if (data.type === "attribute") {
-            auditor.addAttribute(data);
-        } else if (data.type === "stream") {
-            auditor.addStream(data)
-        }
+        auditor.updateEventDetails(data);
     });
 
     $("#events-table").on('show', '.toggle-details', function(event){

@@ -73,6 +73,7 @@ def event(request, event_id=None):
     return json_response({"msg": "Invalid Request."}, "error", 400)
 
 
+
 def event_details(request, event_id=None):
     # Set a detail/attribute
     if request.method == "POST":
@@ -80,103 +81,51 @@ def event_details(request, event_id=None):
             event = Event.objects.get(pk=event_id)
             data = json.loads(request.read())
 
-            if "attribute" in data:
-                key = data["attribute"].keys()[0]
-                value = data["attribute"].get(key)
+            payload = {
+                "event_id": event.id,
+                "details": [],
+            }
 
-                attributes = Attribute.objects.filter(event=event, key=key)
+            for detail in data["details"]:
+                details_type = detail["details_type"]
+                key = detail["name"]
+                value = detail["value"]
+                mode = detail["mode"]
 
-                if not attributes:
-                    attribute = Attribute(event=event, key=key, value=value)
-                    attribute.save()
-                elif len(attributes) == 1:
-                    attribute = attributes[0]
-                    attribute.value = value
-                    attribute.save()
-                else:
-                    return json_response({"msg": "Tried to set attribute with more than one value."}, "error", 400)
+                if details_type == "attribute":
+                    attributes = Attribute.objects.filter(event=event, key=key)
+                    if not attributes or mode == "append":
+                        attribute = Attribute(event=event, key=key, value=value)
+                        attribute.save()
+                    elif mode == "set":
+                        for attribute in attributes[1:]:
+                            attribute.delete()
+                        attribute = attributes[0]
+                        attribute.value = value
+                        attribute.save()
 
-                payload = {
-                    "type": "attribute",
-                    "op_type": "set",
-                    "event_id": event.id,
-                    "data": {key: value},
-                }
-                publish("event_details", "new", payload, event_id=event.id)
-                return json_response({"msg": ""})
+                elif details_type == "stream":
+                    stream = Stream.objects.filter(event=event, name=key)
+                    if stream:
+                        stream = stream.get()
+                        stream_text = value
+                        if mode == "append":
+                            stream_text = stream.text + stream_text
+                        stream.text = stream_text
+                    else:
+                        stream = Stream(event=event, name=key, text=value)
+                    stream.save()
 
-            elif "stream" in data:
-                stream_name = data["stream"]["name"]
-                stream_text = data["stream"]["text"]
-                stream = Stream.objects.filter(event=event, name=stream_name)
-                if stream:
-                    stream = stream.get()
-                    stream.text = stream_text
-                else:
-                    stream = Stream(event=event, name=stream_name, text=stream_text)
-                stream.save()
-                payload = {
-                    "type": "stream",
-                    "op_type": "set",
-                    "event_id": event.id,
-                    "data": data["stream"],
-                }
-                publish("event_details", "new", payload, event_id=event.id)
-                return json_response({"msg": ""})
+                payload["details"].append(detail)
 
-            return json_response({"msg": str(err)}, "error", 400)
+            publish("event_details", "update", payload, event_id=event.id)
+            return json_response({"msg": ""})
+
         except IntegrityError as err:
             return json_response({"msg": str(err)}, "error", 400)
         except DatabaseError as err:
             return json_response({"msg": str(err)}, "error", 500)
 
-
-    # Update details/attribute
-    if request.method == "PUT":
-        try:
-            event = Event.objects.get(pk=event_id)
-            data = json.loads(request.read())
-
-            if "attribute" in data:
-                key = data["attribute"].keys()[0]
-                value = data["attribute"].get(key)
-
-
-                attribute = Attribute(event=event, key=key, value=value)
-                attribute.save()
-
-                payload = {
-                    "type": "attribute",
-                    "op_type": "append",
-                    "event_id": event.id,
-                    "data": {key: value},
-                }
-                publish("event_details", "append", payload, event_id=event.id)
-                return json_response({"msg": ""})
-
-            elif "stream" in data:
-                stream_name = data["stream"]["name"]
-                stream = Stream.objects.filter(event=event, name=stream_name)
-                if stream:
-                    stream = stream.get()
-                    stream.text = stream.text + data["stream"]["text"]
-                else:
-                    stream = Stream(event=event, name=stream_name, text=data["stream"]["text"])
-                stream.save()
-                payload = {
-                    "type": "stream",
-                    "op_type": "append",
-                    "event_id": event.id,
-                    "data": data["stream"],
-                }
-                publish("event_details", "append", payload, event_id=event.id)
-                return json_response({"msg": ""})
-
-            return json_response({"msg": str(err)}, "error", 400)
-        except IntegrityError as err:
-            return json_response({"msg": str(err)}, "error", 400)
-        except DatabaseError as err:
-            return json_response({"msg": str(err)}, "error", 500)
 
     # Get Details for an event
     if request.method == "GET":

@@ -46,32 +46,43 @@
     });
   };
 
-  auditor.addAttribute = function(data) {
-    var elem;
+  auditor.updateEventDetails = function(data) {
+    return $.each(data.details, function(idx, detail) {
+      if (detail.details_type === "attribute") {
+        return auditor.updateAttribute($.extend({
+          event_id: data.event_id
+        }, detail));
+      } else if (detail.details_type === "stream") {
+        return auditor.updateStream($.extend({
+          event_id: data.event_id
+        }, detail));
+      }
+    });
+  };
+
+  auditor.updateAttribute = function(data) {
+    var elem, span;
     elem = $("#event-attributes-" + data.event_id);
     if (elem.hasClass("no-attributes")) {
       elem.html("");
       elem.removeClass("no-attributes");
     }
-    return $.each(data.data, function(key, value) {
-      var span;
-      span = elem.find("span[data-attribute-key='" + key + "'][data-id='" + data.event_id + "']");
-      if (!span.length) {
-        elem.append("<div>\n    <b>" + key + ":</b>\n    <span data-attribute-key=\"" + key + "\" data-id=\"" + data.event_id + "\" class=\"event-attribute\"></span>\n</div>");
+    span = elem.find("span[data-attribute-key='" + data.name + "'][data-id='" + data.event_id + "']");
+    if (!span.length) {
+      elem.append("<div>\n    <b>" + data.name + ":</b>\n    <span data-attribute-key=\"" + data.name + "\" data-id=\"" + data.event_id + "\" class=\"event-attribute\"></span>\n</div>");
+    }
+    span = elem.find("span[data-attribute-key='" + data.name + "'][data-id='" + data.event_id + "']");
+    if (data.mode === "append") {
+      if (!!span.html().length) {
+        span.append(", ");
       }
-      span = elem.find("span[data-attribute-key='" + key + "'][data-id='" + data.event_id + "']");
-      if (data.op_type === "append") {
-        if (!!span.html().length) {
-          span.append(", ");
-        }
-        return span.append(value);
-      } else {
-        return span.html(value);
-      }
-    });
+      return span.append(data.value);
+    } else {
+      return span.html(data.value);
+    }
   };
 
-  auditor.addStream = function(data) {
+  auditor.updateStream = function(data) {
     var active, atBottom, elem, new_stream, no_text;
     active = "";
     no_text = $("span.event-stream-text.no-text[data-id='" + data.event_id + "']");
@@ -80,22 +91,22 @@
       active = "active";
     }
     new_stream = false;
-    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.data.name + "']");
+    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.name + "']");
     if (!elem.length) {
       new_stream = true;
-      $("#event-details-" + data.event_id + " .nav-tabs").append("<li class=\"" + active + "\">\n  <a href=\"#event-stream-" + data.event_id + "-" + data.data.name + "\" data-toggle=\"tab\">" + data.data.name + "</a>\n<li>");
-      $("#event-details-" + data.event_id + " .tab-content").append("<div class=\"tab-pane " + active + "\" id=\"event-stream-" + data.event_id + "-" + data.data.name + "\">\n    <pre data-id=\"" + data.event_id + "\" data-name=\"" + data.data.name + "\" class=\"event-stream-text\">" + data.data.text + "</pre>\n</div>");
+      $("#event-details-" + data.event_id + " .nav-tabs").append("<li class=\"" + active + "\">\n  <a href=\"#event-stream-" + data.event_id + "-" + data.name + "\" data-toggle=\"tab\">" + data.name + "</a>\n<li>");
+      $("#event-details-" + data.event_id + " .tab-content").append("<div class=\"tab-pane " + active + "\" id=\"event-stream-" + data.event_id + "-" + data.name + "\">\n    <pre data-id=\"" + data.event_id + "\" data-name=\"" + data.name + "\" class=\"event-stream-text\">" + data.value + "</pre>\n</div>");
     }
-    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.data.name + "']");
+    elem = $(".event-stream-text[data-id='" + data.event_id + "'][data-name='" + data.name + "']");
     atBottom = false;
     if (auditor.atBottom(elem)) {
       atBottom = true;
     }
     if (!new_stream) {
-      if (data.op_type === "set") {
-        elem.html(data.data.text);
-      } else if (data.op_type === "append") {
-        elem.append(data.data.text);
+      if (data.mode === "set") {
+        elem.html(data.value);
+      } else if (data.mode === "append") {
+        elem.append(data.value);
       }
     }
     if (atBottom) {
