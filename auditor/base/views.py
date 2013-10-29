@@ -50,7 +50,6 @@ def event(request, event_id=None):
         except DatabaseError as err:
             return json_response({"msg": str(err)}, "error", 500)
 
-
     # Update Event
     if request.method == "PUT" and event_id is not None:
         try:
@@ -63,15 +62,20 @@ def event(request, event_id=None):
         except Event.DoesNotExist as err:
             return json_response({"msg": str(err)}, "error", 404)
 
-
+    # View Events
     if request.method == "GET" and event_id is None:
-        pass
-    #TODO(gary): View Event
-    #TODO(gary): View Events
+        offset = int(request.GET.get("offset", 0))
+        limit = int(request.GET.get("limit", 50))
 
+        events = Event.objects.order_by("-start")[offset:limit]
+        return json_response({"events": [event.to_dict() for event in events]})
+
+    # View Event
+    if request.method == "GET" and event_id:
+        event = Event.objects.get(pk=event_id)
+        return json_response(event.to_dict())
 
     return json_response({"msg": "Invalid Request."}, "error", 400)
-
 
 
 def event_details(request, event_id=None):
