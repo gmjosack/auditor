@@ -35,7 +35,6 @@ def index(request):
 
     return r2r(request, "index", ctxt)
 
-
 def event(request, event_id=None):
     # Create Event
     if request.method == "POST" and event_id is None:
@@ -67,8 +66,13 @@ def event(request, event_id=None):
         offset = int(request.GET.get("offset", 0))
         limit = int(request.GET.get("limit", 50))
 
-        events = Event.objects.order_by("-start")[offset:limit]
-        return json_response({"events": [event.to_dict() for event in events]})
+        events = Event.objects.order_by("-start")
+        count = events.count()
+        events = events[offset:limit]
+        return json_response({
+            "events": [event.to_dict() for event in events],
+            "total": count,
+        })
 
     # View Event
     if request.method == "GET" and event_id:
