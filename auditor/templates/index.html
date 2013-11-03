@@ -5,7 +5,7 @@
 {% block extra_nav %}
   <li class="dropdown">
       <a class="dropdown-toggle" data-toggle="dropdown" href="">
-        <i alt="Limit" class="icon-resize-horizontal"></i>
+        <i alt="Limit" class="fa fa-resize-horizontal"></i>
       </a>
       <ul class="dropdown-menu">
         <li><a class="text-right" href="?page={{page}}&limit=10">10</a></li>
@@ -35,7 +35,7 @@
         <tr id="event-row-{{event.id}}" class="event-row">
           <td class="event-expander">
             <a data-toggle="collapse" data-target="#toggle-details-{{event.id}}" class="btn">
-              <i class="icon-level-down"></i>
+              <i class="fa fa-external-link"></i>
             </a>
           </td>
           <td class="event-summary"><span title="{{event.summary}}">{{event.summary|truncatechars:90}}</span></td>
@@ -61,34 +61,34 @@
     <div>Page {{ events.number }} of {{ events.paginator.num_pages }}.</div>
     <ul>
       {% if page == 1 %}
-        <li class="disabled"><a><i class="icon-double-angle-left"></i></a></li>
+        <li class="disabled"><a><i class="fa fa-angle-double-left"></i></a></li>
       {% else %}
-        <li><a href="?limit={{limit}}"><i class="icon-double-angle-left"></i></a></li>
+        <li><a href="?limit={{limit}}"><i class="fa fa-angle-double-left"></i></a></li>
       {% endif %}
 
       {% if events.has_previous %}
-        <li><a href="?page={{events.previous_page_number}}&limit={{limit}}"><i class="icon-angle-left"></i></a></li>
+        <li><a href="?page={{events.previous_page_number}}&limit={{limit}}"><i class="fa fa-angle-left"></i></a></li>
       {% else %}
-        <li class="disabled"><a><i class="icon-angle-left"></i></a></li>
+        <li class="disabled"><a><i class="fa fa-angle-left"></i></a></li>
       {% endif %}
 
       {% if events.has_next %}
-        <li><a href="?page={{events.next_page_number}}&limit={{limit}}"><i class="icon-angle-right"></i></a></li>
+        <li><a href="?page={{events.next_page_number}}&limit={{limit}}"><i class="fa fa-angle-right"></i></a></li>
       {% else %}
-        <li class="disabled"><a><i class="icon-angle-right"></i></a></li>
+        <li class="disabled"><a><i class="fa fa-angle-right"></i></a></li>
       {% endif %}
 
       {% if page == num_pages %}
-        <li class="disabled"><a><i class="icon-double-angle-right"></i></a></li>
+        <li class="disabled"><a><i class="fa fa-angle-double-right"></i></a></li>
       {% else %}
-        <li><a href="?page={{num_pages}}&limit={{limit}}"><i class="icon-double-angle-right"></i></a></li>
+        <li><a href="?page={{num_pages}}&limit={{limit}}"><i class="fa fa-angle-double-right"></i></a></li>
       {% endif %}
     </ul>
 </div>
 {% endblock %}
 
 {% block script %}
-  <script src="static/hb_templates.min.js"></script>
+  <script src="static/js/hb_templates.min.js"></script>
   <script type="text/javascript">
 
     var socket = io.connect("http://localhost:8001");
