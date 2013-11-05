@@ -2,8 +2,8 @@
 <html>
   <head>
     <title>{% block title %} Auditor {% endblock %}</title>
-    <link href="{{STATIC_URL}}css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="{{STATIC_URL}}css/font-awesome.min.css" rel="stylesheet" media="screen">
+    <link href="{{STATIC_URL}}thirdparty/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="{{STATIC_URL}}thirdparty/css/font-awesome.min.css" rel="stylesheet" media="screen">
     <link href="{{STATIC_URL}}css/auditor.css" rel="stylesheet" media="screen">
     <link href='http://fonts.googleapis.com/css?family=Cabin:400,500' rel="stylesheet">
     {% block extra_head %} {% endblock %}
@@ -34,16 +34,16 @@
       </div>
     </div>
 
-    <script src="/static/js/jquery-2.0.3.min.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/socket.io.min.js"></script>
-    <script src="/static/js/moment.min.js"></script>
-    <script src="/static/js/handlebars.runtime.js"></script>
-    <script src="/static/js/underscore-min.js"></script>
+    <script src="/static/thirdparty/js/jquery-2.0.3.min.js"></script>
+    <script src="/static/thirdparty/js/bootstrap.min.js"></script>
+    <script src="/static/thirdparty/js/socket.io.min.js"></script>
+    <script src="/static/thirdparty/js/moment.min.js"></script>
+    <script src="/static/thirdparty/js/handlebars.runtime.js"></script>
+    <script src="/static/thirdparty/js/underscore-min.js"></script>
     <script src="/static/js/auditor.js"></script>
 
     <script type="text/javascript">
-      var WEB_SOCKET_SWF_LOCATION = "/static/swf/";
+      var WEB_SOCKET_SWF_LOCATION = "/static/thirdparty/swf/";
 
       moment.defaultFormat = "MMM D, YYYY, h:mm a";
       moment.lang('en', {
